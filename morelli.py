@@ -1,18 +1,9 @@
 import pygame
 import math
 import time
+from functools import lru_cache
 
 class Morelli:
-
-    # defines the width and height of the display
-    #display_width = 600
-    #display_height = 680
-
-    # defines block width and height
-    #block_height = 50 * 1.5
-    #block_width = 50 * 1.5
-
-    #factor = 25 * 1.5
 
     # defines colours
     white = (255, 255, 255)
@@ -36,13 +27,67 @@ class Morelli:
     ]
 
 
+
+    class Cell:
+
+    	def __init__(self, pos, order):
+    		self.order = order
+    		self.pos = pos
+    		self._holding = "empty"
+
+    	def set_holding(self, what):
+    		self._holding = what
+
+    	def get_holding(self):
+    		return self._holding
+
+    	def is_empty(self):
+            if(self._holding == "empty"):
+                return True
+            else:
+                return False
+
+
+
     def __init__(self, dim=11, cell_size=50, bottom_bar=200):
         self.figure_dims(dim, cell_size, bottom_bar)
         pygame.init()
         self.game_display = pygame.display.set_mode((self.display_width, self.display_height))
         pygame.display.update()
         self.clock = pygame.time.Clock()
+        self.init_cells()
+        self.testing()
         self.main_loop()
+
+    def testing(self):
+        self._cells[2][3].set_holding({"color":(10,10,10)})
+        self._cells[3][3].set_holding({"color":(240,240,240)})
+
+    @staticmethod
+    @lru_cache(maxsize=256)
+    def pnorm(vec, p=5):
+        # en.wikipedia.org/wiki/Norm_(mathematics), pnorm 
+        # 1 - taxicab/manhattan distance
+        # 2 - Euclidean distance
+        # for morelli square p must aproach infinity but carefull with OVF. 
+        vec_sum = 0
+        for val in vec:
+            vec_sum += val**p
+        return (vec_sum**(1/p))
+
+
+    def init_cells(self):
+        self._cells = []
+        self.center = (self.dim//2, self.dim//2)
+        for x in range(self.dim):
+            cells = []
+            for y in range(self.dim):
+                order = int(Morelli.pnorm(
+                    frozenset([abs(x-self.center[0]),abs(y-self.center[0])])))
+                order = -order + self.center[0] 
+                new_cell = Morelli.Cell([x, y], order)
+                cells.append(new_cell)
+            self._cells.append(cells)
 
     def figure_dims(self, dim, cell_size, bottom_bar):
         if (dim%2 != 1): # Make sure dim is odd and below 11
@@ -62,8 +107,15 @@ class Morelli:
         for i in range(self.dim):
             for j in range(self.dim):
                 mod = self.dim//2
-                color = Morelli.colors[abs(min(i%mod,j%mod))]
-                pygame.draw.rect(self.game_display, color, (i * self.cell_size, j * self.cell_size, self.cell_size, self.cell_size))
+                cell = self._cells[i][j]
+                final_pos = (cell.pos[0] * self.cell_size, cell.pos[1] * self.cell_size, self.cell_size, self.cell_size)
+                pygame.draw.rect(self.game_display, Morelli.colors[cell.order], final_pos)
+                if(not cell.is_empty()):
+                    holding_pos = (final_pos[0] + self.cell_size//4, final_pos[1] + self.cell_size//4, self.cell_size//2, self.cell_size//2)
+                    pygame.draw.rect(self.game_display, cell.get_holding()["color"], holding_pos)
+
+    def select_cell(self, click_cell_x, click_cell_y, time = 3):
+        pass
 
     def main_loop(self):
          #selec = False
@@ -83,16 +135,19 @@ class Morelli:
 
             self.clock.tick(20)
 
-            """
+            
             for event in pygame.event.get():
                 if event.type == pygame.MOUSEBUTTONUP:
                     pos = pygame.mouse.get_pos()
-                    a = pos[0] // 75
-                    b = pos[1] // 75
-                    pygame.draw.rect(game_display, teal, (a * 50 * 1.5, b * 50 * 1.5, block_width, block_height))
-                    pygame.display.update()
-                    time.sleep(0.03)
+                    click_cell_x = pos[0] // self.cell_size
+                    click_cell_y = pos[1] // self.cell_size
+                    self.select_cell(click_cell_x, click_cell_y)
+                    #pygame.draw.rect(self.game_display, (20, 200, 10), (click_cell_x * self.cell_size, click_cell_y * self.cell_size, self.cell_size, self.cell_size))
+                    #pygame.display.update()
+                    #time.sleep(0.3)
+                    
 
+                    """
                     if not selec:
                         selected_piece = select_block(a, b)
                         selec = True
@@ -104,11 +159,11 @@ class Morelli:
                     else:
                         if selected_piece is not None:
                             move(selected_piece.x, selected_piece.y, a, b)
-                        selec = False
+                        selec = False"""
                 if event.type == pygame.QUIT:
                     pygame.quit()
                     quit()
-            """
+            
 
 if __name__ == "__main__":
     game = Morelli()
