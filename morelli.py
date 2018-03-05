@@ -4,6 +4,7 @@ from time import sleep,time
 from functools import lru_cache
 import asyncio
 import threading
+import random
 
 class Morelli:
 
@@ -100,8 +101,38 @@ class Morelli:
         self.clock = pygame.time.Clock()
         self.init_cells()
         self.init_players(option)
-        self.testing()
+        self.init_place()
+        #self.testing()
         self.main_loop()
+
+    def init_place(self):
+        pieces = [self.dim*2, self.dim*2]
+        for i in range(self.dim):
+            remove = round(random.uniform(0, 1))
+            
+            if(pieces[remove] == 0):
+                remove = (remove + 1)%2
+
+            pieces[remove] -= 1
+            piece = Morelli.Piece(self._players[remove])
+            piece2 = Morelli.Piece(self._players[(remove+1)%2])
+            self._cells[i][0].set_holding(piece) 
+            self._cells[i][self.dim-1].set_holding(piece2) 
+
+        for i in range(1, self.dim):
+            remove = round(random.uniform(0, 1))
+            
+            if(pieces[remove] == 0):
+                remove = (remove + 1)%2
+
+            pieces[remove] -= 1
+            piece = Morelli.Piece(self._players[remove])
+            piece2 = Morelli.Piece(self._players[(remove+1)%2])
+            self._cells[0][i].set_holding(piece) 
+            self._cells[self.dim-1][i].set_holding(piece2) 
+
+        #print('Bag have %d whites and %d blacks'% (pieces[0], pieces[1]))
+
 
     def testing(self):
         self._cells[2][3].set_holding(Morelli.Piece(self._players[0]))
@@ -144,6 +175,9 @@ class Morelli:
             self._cells.append(cells)
 
     def figure_dims(self, dim, cell_size, bottom_bar):
+        if(dim < 7 or dim > 17):
+            raise ValueError("Board is either too small or to big")
+
         if (dim%2 != 1): # Make sure dim is odd and below 11
             dim = dim + 1
         self.dim = min(dim, 11)
@@ -176,14 +210,19 @@ class Morelli:
             pygame.draw.rect(self.game_display, (0,250,0), final_pos)
 
     def select_cell(self, click_cell_x, click_cell_y):
-        clicked_cell = self._cells[click_cell_x][click_cell_y]
-        if(clicked_cell.is_empty()):
+
+        if(click_cell_x >= self.dim or click_cell_y >= self.dim):
             return
-        owner = clicked_cell.get_holding().owner
 
-        # forgive me bad code ahead
+        is_buff_empty = not hasattr(self, 'sel_buf') or self.sel_buf == "empty"
 
-        if not hasattr(self, 'sel_buf'):
+        clicked_cell = self._cells[click_cell_x][click_cell_y]
+        if(clicked_cell.is_empty() and is_buff_empty):
+            return
+
+        # forgive me, bad code ahead
+
+        if is_buff_empty:
             print('Sel buf: ' + str(clicked_cell.is_empty()))
             self.sel_buf = clicked_cell
             return
@@ -192,7 +231,8 @@ class Morelli:
                 print('moving %s  to %s ' % (self.sel_buf, clicked_cell))
                 self.move(self.sel_buf, clicked_cell)
 
-        print('Cliked cell %d,%d whose owner is: %s'% (click_cell_x, click_cell_y, owner) )
+        self.sel_buf = "empty"
+        #print('Cliked cell %d,%d whose owner is: %s'% (click_cell_x, click_cell_y, owner) )
 
 
     def move(self, from_cell, where_cell):
