@@ -54,12 +54,22 @@ class Morelli:
 
         player_color = {'black' : (10,10,10), 'white' : (240,240,240)}
 
-        def __init__(self, color):
+        def __init__(self, color, game):
+            self.game = game
             self.color = color
+            self.ignore_mouse = False
 
         def color_to_rgb(self):
             #print('Owner color ' + Player.player_color[self.color])
             return Morelli.Player.player_color[self.color]
+
+        def move(self, events):
+            for event in events:
+                if event.type == pygame.MOUSEBUTTONUP:
+                        pos = pygame.mouse.get_pos()
+                        click_cell_x = pos[0] // self.game.cell_size
+                        click_cell_y = pos[1] // self.game.cell_size
+                        self.game.select_cell(click_cell_x, click_cell_y)
 
         def __setitem__(self, key, item):
             if(key != 'color'):
@@ -78,10 +88,13 @@ class Morelli:
 
     class AI(Player):
 
-
-        def __init__(self, color, dificulty=0):
-            super().__init__(color)
+        def __init__(self, color, game, dificulty=0):
+            super().__init__(color, game)
             self.dificulty = dificulty
+            self.ignore_mouse = True
+
+        def move(self, events):
+            print('AI THINKING')
 
     class Piece:
 
@@ -93,23 +106,23 @@ class Morelli:
             #print('color to owner ' + self.owner.color_to_rgb())
             return self.owner.color_to_rgb()
 
-    def __init__(self, dim=11, cell_size=50, bottom_bar=200, option='PvsAI'):
+    def __init__(self, dim=11, cell_size=50, bottom_bar=200, option='PvsAI', turn_time=5):
         self.figure_dims(dim, cell_size, bottom_bar)
         pygame.init()
         self.game_display = pygame.display.set_mode((self.display_width, self.display_height))
         pygame.display.update()
         self.clock = pygame.time.Clock()
         self.init_cells()
+        self.turn_time = turn_time
         self.init_players(option)
         self.init_place()
-        #self.testing()
+        self.add_rules()
         self.main_loop()
 
     def init_place(self):
         pieces = [self.dim*2, self.dim*2]
         for i in range(self.dim):
             remove = round(random.uniform(0, 1))
-            
             if(pieces[remove] == 0):
                 remove = (remove + 1)%2
 
@@ -121,7 +134,6 @@ class Morelli:
 
         for i in range(1, self.dim):
             remove = round(random.uniform(0, 1))
-            
             if(pieces[remove] == 0):
                 remove = (remove + 1)%2
 
@@ -133,6 +145,8 @@ class Morelli:
 
         #print('Bag have %d whites and %d blacks'% (pieces[0], pieces[1]))
 
+    def add_rules(self):
+        self._rules = []
 
     def testing(self):
         self._cells[2][3].set_holding(Morelli.Piece(self._players[0]))
@@ -151,15 +165,15 @@ class Morelli:
         return (vec_sum**(1/p))
 
     def init_players(self, option):
-
-        p1 = Morelli.Player('black')
+        p1 = Morelli.Player('black', self)
 
         if option == 'AIvsAI':
-            p1 = Morelli.AI('black')
+            p1 = Morelli.AI('black', self)
 
-        p2 = Morelli.AI('white')
+        p2 = Morelli.AI('white', self)
 
         self._players = [p1, p2]
+        self.who_turn = 0
 
     def init_cells(self):
         self._cells = []
@@ -239,8 +253,10 @@ class Morelli:
         if(from_cell.is_empty()):
             print('Tried to move empty')
             return
-        where_cell.set_holding(from_cell.get_holding())
-        from_cell.set_holding('empty')
+        if(self.check_rules(from_cell, where_cell)):
+            where_cell.set_holding(from_cell.get_holding())
+            from_cell.set_holding('empty')
+
 
 
     def main_loop(self):
@@ -248,53 +264,39 @@ class Morelli:
          #global selected_family
 
          self.current_player = self._players[0]
+         self.curr_turn_time = 0
 
          while True:
 
             frames_passed = self.clock.tick(16.6597)
             time_passed = 1/frames_passed
+            self.curr_turn_time += time_passed
+
+            self.turn = (self.curr_turn_time%(self.turn_time*2  )) // (self.turn_time//2)%2
+            curr_player = self._players[round(self.turn)]
 
             #print('Passed : %fs' % time_passed)
+            #print('Turn : ' + str(self.turn))
 
             self.board_draw()
 
             #initialize_piece()
             myfont = pygame.font.SysFont("comicsansms", 30)
-            #string = selected_family +"'s turn"
-            label = myfont.render("Teste", 1, Morelli.white)
+            string = str(curr_player)
+            label = myfont.render(string, 1, Morelli.white)
 
             self.game_display.blit(label, (20, 620))
 
-            for event in pygame.event.get():
-                if event.type == pygame.MOUSEBUTTONUP:
-                    pos = pygame.mouse.get_pos()
-                    click_cell_x = pos[0] // self.cell_size
-                    click_cell_y = pos[1] // self.cell_size
-                    print('In event mouse up')
-                    self.select_cell(click_cell_x, click_cell_y)
-                    #asyncio.run_coroutine_threadsafe(self.select_cell(click_cell_x, click_cell_y), loop)
-                    #pygame.draw.rect(self.game_display, (20, 200, 10), (click_cell_x * self.cell_size, click_cell_y * self.cell_size, self.cell_size, self.cell_size))
-                    #t1 = threading.Thread(target=self.select_cell(click_cell_x, click_cell_y))
-                    #t1.start()
+            events = pygame.event.get()
 
-                    """
-                    if not selec:
-                        selected_piece = select_block(a, b)
-                        selec = True
-                        if selected_piece is not None:
-                            print(selected_piece.x, " ", selected_piece.y)
-
-                        else:
-                            selec = False
-                    else:
-                        if selected_piece is not None:
-                            move(selected_piece.x, selected_piece.y, a, b)
-                        selec = False"""
+            for event in events:
                 if event.type == pygame.QUIT:
                     pygame.quit()
                     quit()
 
-                pygame.display.update()
+            curr_player.move(events)
+
+            pygame.display.update()
 
 
 
@@ -320,6 +322,27 @@ if __name__ == "__main__":
             if (loop.time() + 1.0) >= end_time:
                 break
             await asyncio.sleep(1)
+
+
+                    #asyncio.run_coroutine_threadsafe(self.select_cell(click_cell_x, click_cell_y), loop)
+                    #pygame.draw.rect(self.game_display, (20, 200, 10), (click_cell_x * self.cell_size, click_cell_y * self.cell_size, self.cell_size, self.cell_size))
+                    #t1 = threading.Thread(target=self.select_cell(click_cell_x, click_cell_y))
+                    #t1.start()
+
+
+                    if not selec:
+                        selected_piece = select_block(a, b)
+                        selec = True
+                        if selected_piece is not None:
+                            print(selected_piece.x, " ", selected_piece.y)
+
+                        else:
+                            selec = False
+                    else:
+                        if selected_piece is not None:
+                            move(selected_piece.x, selected_piece.y, a, b)
+                        selec = False
+
 
 """
 
