@@ -96,6 +96,7 @@ class Morelli:
         def move(self, events):
             print('AI THINKING')
 
+
     class Piece:
 
         def __init__(self, player, obj_type='regular'):
@@ -146,7 +147,39 @@ class Morelli:
         #print('Bag have %d whites and %d blacks'% (pieces[0], pieces[1]))
 
     def add_rules(self):
-        self._rules = []
+        self.bool_rules = []
+        self.modifying_rules = []
+
+        game = self
+
+        def no_in_way(from_cell, to_cell):
+            x_diff = to_cell.pos[0] - from_cell.pos[0]
+            y_diff = to_cell.pos[1] - from_cell.pos[1]
+
+            if(x_diff  == 0 and y_diff == 0):
+                print("hmmm both x_diff and y_diff is 0")
+                return True
+
+            if(x_diff == y_diff):
+                print("RULE : Dont know how to do diagonal thing")
+                return True
+            else:
+                if(y_diff > x_diff):
+                    for i in range(from_cell.pos[1], to_cell.pos[1] + round(1*abs(y_diff)/y_diff)):
+                        if(not self._cells[from_cell.pos[0]][i].is_empty()):
+                            print("Tried to move piece on top of another")
+                            return False
+                else:
+                    for i in range(from_cell.pos[0] + round(1*abs(x_diff)/x_diff), to_cell.pos[0]):
+                        if(not self._cells[i][from_cell.pos[1]].is_empty()):
+                            print("Tried to move piece on top of another")
+                            return False
+            print("Passed No piece in middle rule")
+            return True
+
+        self.bool_rules.append(no_in_way)
+
+
 
     def testing(self):
         self._cells[2][3].set_holding(Morelli.Piece(self._players[0]))
@@ -248,6 +281,19 @@ class Morelli:
         self.sel_buf = "empty"
         #print('Cliked cell %d,%d whose owner is: %s'% (click_cell_x, click_cell_y, owner) )
 
+    def check_rules(self, from_cell, to_cell):
+        for bool_ruĺe in self.bool_rules:
+            if(not bool_ruĺe(from_cell, to_cell)):
+                print("FAILED A RULE")
+                return False
+        print("Passed all rules")
+        return True
+
+    def mod_rules(self, from_cell, to_cell):
+        for mod_ruĺe in self.modifying_rules:
+            mod_ruĺe(from_cell, to_cell)
+        print("Done all mod rules")
+        return True
 
     def move(self, from_cell, where_cell):
         if(from_cell.is_empty()):
@@ -256,6 +302,7 @@ class Morelli:
         if(self.check_rules(from_cell, where_cell)):
             where_cell.set_holding(from_cell.get_holding())
             from_cell.set_holding('empty')
+            return self.mod_rules()
 
 
 
