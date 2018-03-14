@@ -302,7 +302,7 @@ class Morelli:
         if(self.check_rules(from_cell, where_cell)):
             where_cell.set_holding(from_cell.get_holding())
             from_cell.set_holding('empty')
-            return self.mod_rules()
+            return self.mod_rules(from_cell, where_cell)
 
 
 
