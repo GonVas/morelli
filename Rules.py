@@ -26,8 +26,6 @@ class NoInWay(Rule):
         x_diff = to_cell.pos[0] - from_cell.pos[0]
         y_diff = to_cell.pos[1] - from_cell.pos[1]
 
-        print("Xdiff: %d, Ydiff: %d" % (x_diff, y_diff))
-
         if(not to_cell.is_empty()):
             print("Cell not Empty")
             return False
@@ -35,29 +33,21 @@ class NoInWay(Rule):
         if(x_diff  == 0 and y_diff == 0):
             print("hmmm both x_diff and y_diff is 0")
             return True
-
         else:
-            if(x_diff == 0):
-                for i in range(from_cell.pos[1], to_cell.pos[1] + round(1*abs(y_diff)/y_diff)):
-                    if(not self.game._cells[from_cell.pos[0]][i].is_empty()):
-                        print("Tried to move piece on top of another")
-                        return False
-            elif(y_diff == 0):
-                for i in range(from_cell.pos[0] + round(1*abs(x_diff)/x_diff), to_cell.pos[0]):
-                    if(not self.game._cells[i][from_cell.pos[1]].is_empty()):
-                        print("Tried to move piece on top of another")
-                        return False
-            else:
-                return self.diagonal_move(from_cell, to_cell)
+            return self.line_move(from_cell, to_cell)
 
         print("Passed No piece in middle rule")
         return True
 
-    def diagonal_move(self, from_cell, to_cell):
+    def line_move(self, from_cell, to_cell):
         moved_cells = NoInWay.line(from_cell.pos[0], from_cell.pos[1], to_cell.pos[0], to_cell.pos[1])
-        for x, y in moved_cells:
+        for y, x in moved_cells:
+            print("X:%d, Y:%d and from[0]:%d and from[1]:%d" % (x,y, from_cell.pos[0], from_cell.pos[1]))
+            if(x == from_cell.pos[0] and y == from_cell.pos[1]):
+                print("Equal thing")
+                continue
             if(not self.game._cells[x][y].is_empty()):
-                print("Failed diagonal move")
+                print("Failed middle")
                 return False
         return True
 
