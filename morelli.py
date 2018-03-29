@@ -48,6 +48,7 @@ class Morelli:
         self.init_players(option)
         self.init_place()
         self.add_rules()
+        self.reset_test_env()
 
         if(testing):
             self.reset_test_env()

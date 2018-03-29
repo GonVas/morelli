@@ -22,7 +22,7 @@ class TestMorelli(unittest.TestCase):
         to_cell_topf2 = self.game._cells[2][3]
         to_cell_topf3 = self.game._cells[3][3]
 
-        to_cell_topg = self.game._cells[2][4]
+        to_cell_topg = self.game._cells[1][5]
         to_cell_topg2 = self.game._cells[3][5]
 
         self.assertFalse(self.game.move(from_cell, to_cell_topf), "Did move when should not have")
@@ -34,7 +34,7 @@ class TestMorelli(unittest.TestCase):
 
         self.game.reset_test_env()
 
-        #self.assertTrue(self.game.move(from_cell, to_cell_topg2), "Supossed to move, did not 2")
+        self.assertTrue(self.game.move(from_cell, to_cell_topg2), "Supossed to move, did not 2")
 
 
 

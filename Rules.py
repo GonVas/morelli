@@ -44,7 +44,6 @@ class NoInWay(Rule):
         for y, x in moved_cells:
             print("X:%d, Y:%d and from[0]:%d and from[1]:%d" % (x,y, from_cell.pos[0], from_cell.pos[1]))
             if(x == from_cell.pos[0] and y == from_cell.pos[1]):
-                print("Equal thing")
                 continue
             if(not self.game._cells[x][y].is_empty()):
                 print("Failed middle")
