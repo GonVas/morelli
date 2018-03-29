@@ -1,3 +1,6 @@
+from fractions import Fraction
+from functools import lru_cache
+
 class Rule:
 
     def __init__(self, game, method):
@@ -45,11 +48,39 @@ class NoInWay(Rule):
                         print("Tried to move piece on top of another")
                         return False
             else:
-                print("Uncaught Rule, not moving")
-                return False
+                return self.diagonal_move(from_cell, to_cell)
 
         print("Passed No piece in middle rule")
         return True
+
+    def diagonal_move(self, from_cell, to_cell):
+        moved_cells = NoInWay.line(from_cell.pos[0], from_cell.pos[1], to_cell.pos[0], to_cell.pos[1])
+        for x, y in moved_cells:
+            if(not self.game._cells[x][y].is_empty()):
+                print("Failed diagonal move")
+                return False
+        return True
+
+
+    @staticmethod
+    @lru_cache(maxsize=256)
+    def line(x0, y0, x1, y1):
+        #Bresenham line algorithm from 
+        #https://rosettacode.org/wiki/Bitmap/Bresenham%27s_line_algorithm#Python
+        points = []
+        rev = reversed
+        if abs(y1 - y0) <= abs(x1 - x0):
+            x0, y0, x1, y1 = y0, x0, y1, x1
+            rev = lambda x: x
+        if x1 < x0:
+            x0, y0, x1, y1 = x1, y1, x0, y0
+        leny = abs(y1 - y0)
+        for i in range(leny + 1):
+            points.append([*rev((round(Fraction(i, leny) * (x1 - x0)) + x0, (1 if y1 > y0 else -1) * i + y0))])
+        
+        return points
+
+
 
 class ChangePiece(Rule):
 

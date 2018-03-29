@@ -16,13 +16,14 @@ class TestMorelli(unittest.TestCase):
 
     def test_move(self):
 
-        from_cell = self.game._cells[2][3]
+        from_cell = self.game._cells[0][3]
 
-        to_cell_topf = self.game._cells[4][3]
-        to_cell_topf2 = self.game._cells[5][3]
+        to_cell_topf = self.game._cells[1][3]
+        to_cell_topf2 = self.game._cells[2][3]
+        to_cell_topf3 = self.game._cells[3][3]
 
-        to_cell_topg = self.game._cells[3][1]
-        to_cell_topg2 = self.game._cells[4][1]
+        to_cell_topg = self.game._cells[2][4]
+        to_cell_topg2 = self.game._cells[3][5]
 
         self.assertFalse(self.game.move(from_cell, to_cell_topf), "Did move when should not have")
         self.assertFalse(self.game.move(from_cell, to_cell_topf2), "Did move when should not have")

@@ -90,8 +90,8 @@ class Morelli:
             for cellxy in cellx:
                 cellxy.set_empty()
 
-        self._cells[2][3].set_holding(Piece(self._players[0]))
-        self._cells[3][3].set_holding(Piece(self._players[1]))
+        self._cells[0][3].set_holding(Piece(self._players[0]))
+        self._cells[1][3].set_holding(Piece(self._players[1]))
 
     @staticmethod
     @lru_cache(maxsize=256)
