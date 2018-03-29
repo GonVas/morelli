@@ -18,6 +18,9 @@ class Cell:
         else:
             return False
 
+    def set_empty(self):
+        self._holding = "empty"
+
 class Piece:
 
     def __init__(self, player, obj_type='regular'):

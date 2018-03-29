@@ -25,24 +25,28 @@ class NoInWay(Rule):
 
         print("Xdiff: %d, Ydiff: %d" % (x_diff, y_diff))
 
+        if(not to_cell.is_empty()):
+            print("Cell not Empty")
+            return False
+
         if(x_diff  == 0 and y_diff == 0):
             print("hmmm both x_diff and y_diff is 0")
             return True
 
-        if(x_diff == y_diff):
-            print("RULE : Dont know how to do diagonal thing")
-            return True
         else:
-            if(y_diff > x_diff):
+            if(x_diff == 0):
                 for i in range(from_cell.pos[1], to_cell.pos[1] + round(1*abs(y_diff)/y_diff)):
                     if(not self.game._cells[from_cell.pos[0]][i].is_empty()):
                         print("Tried to move piece on top of another")
                         return False
-            else:
+            elif(y_diff == 0):
                 for i in range(from_cell.pos[0] + round(1*abs(x_diff)/x_diff), to_cell.pos[0]):
                     if(not self.game._cells[i][from_cell.pos[1]].is_empty()):
                         print("Tried to move piece on top of another")
                         return False
+            else:
+                print("Uncaught Rule, not moving")
+                return False
 
         print("Passed No piece in middle rule")
         return True

@@ -33,17 +33,25 @@ class Morelli:
         (36,0,65)
     ]
 
-    def __init__(self, dim=11, cell_size=50, bottom_bar=200, option='PvsAI', turn_time=15):
+    def __init__(self, dim=11, cell_size=50, bottom_bar=200, option='PvsAI', turn_time=15, testing=False):
         self.figure_dims(dim, cell_size, bottom_bar)
-        pygame.init()
-        self.game_display = pygame.display.set_mode((self.display_width, self.display_height))
-        pygame.display.update()
-        self.clock = pygame.time.Clock()
+
+        self.testing = testing
+        if(not testing):
+            pygame.init()
+            self.game_display = pygame.display.set_mode((self.display_width, self.display_height))
+            pygame.display.update()
+            self.clock = pygame.time.Clock()
+        
         self.init_cells()
         self.turn_time = turn_time
         self.init_players(option)
         self.init_place()
         self.add_rules()
+
+        if(testing):
+            self.reset_test_env()
+
         self.main_loop()
 
     def init_place(self):
@@ -76,8 +84,12 @@ class Morelli:
         self.bool_rules = [Rules.NoInWay(self)]
         self.modifying_rules = []
 
+    def reset_test_env(self):
 
-    def testing(self):
+        for cellx in self._cells:
+            for cellxy in cellx:
+                cellxy.set_empty()
+
         self._cells[2][3].set_holding(Piece(self._players[0]))
         self._cells[3][3].set_holding(Piece(self._players[1]))
 
@@ -194,7 +206,7 @@ class Morelli:
     def move(self, from_cell, where_cell):
         if(from_cell.is_empty()):
             print('Tried to move empty')
-            return
+            return False
         if(self.check_rules(from_cell, where_cell)):
             where_cell.set_holding(from_cell.get_holding())
             from_cell.set_holding('empty')
@@ -202,13 +214,11 @@ class Morelli:
 
 
     def main_loop(self):
-         #selec = False
-         #global selected_family
 
          self.current_player = self._players[0]
          self.curr_turn_time = 0
 
-         while True:
+         while True and not self.testing:
 
             frames_passed = self.clock.tick(16.6597)
             time_passed = 1/frames_passed
@@ -217,12 +227,7 @@ class Morelli:
             self.turn = (self.curr_turn_time%(self.turn_time*2  )) // (self.turn_time//2)%2
             curr_player = self._players[round(self.turn)]
 
-            #print('Passed : %fs' % time_passed)
-            #print('Turn : ' + str(self.turn))
-
             self.board_draw()
-
-            #initialize_piece()
             myfont = pygame.font.SysFont("comicsansms", 30)
             string = str(curr_player)
             label = myfont.render(string, 1, Morelli.white)
