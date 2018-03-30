@@ -34,3 +34,14 @@ class Piece:
     def color_str(self):
         #print('color to owner ' + self.owner.color_to_rgb())
         return self.owner.color
+
+class King(Piece):
+
+    def __init__(self, player, obj_type='king'):
+        super().__init__(player, obj_type)
+
+    def color(self):
+        return self.owner.king_color_to_rgb()
+
+    def color_str(self):
+        return self.owner.color

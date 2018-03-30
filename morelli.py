@@ -7,7 +7,7 @@ import threading
 import random
 
 from Player import Player, AI
-from Cell import Cell, Piece
+from Cell import Cell, Piece, King
 import Rules
 
 class Morelli:
@@ -48,10 +48,10 @@ class Morelli:
         self.init_players(option)
         self.init_place()
         self.add_rules()
-        self.reset_test_env()
+        self.reset_test_env2()
 
         if(testing):
-            self.reset_test_env()
+            self.reset_test_env2()
 
         self.main_loop()
 
@@ -83,7 +83,8 @@ class Morelli:
 
     def add_rules(self):
         self.bool_rules = [Rules.NoInWay(self)]
-        self.modifying_rules = [Rules.ChangePiece(self)]
+        self.modifying_rules = [Rules.ChangePiece(self), Rules.PutKing(self)]
+        self.winner_rules = [Rules.Winning(self)]
 
     def reset_test_env(self):
 
@@ -94,6 +95,18 @@ class Morelli:
         self._cells[0][3].set_holding(Piece(self._players[0]))
         self._cells[1][3].set_holding(Piece(self._players[1]))
         self._cells[1][2].set_holding(Piece(self._players[0]))
+
+    def reset_test_env2(self):
+
+        for cellx in self._cells:
+            for cellxy in cellx:
+                cellxy.set_empty()
+
+        self._cells[3][3].set_holding(Piece(self._players[0]))
+        self._cells[-4][-4].set_holding(Piece(self._players[0]))
+        self._cells[3][-4].set_holding(Piece(self._players[0]))
+
+        self._cells[1][1].set_holding(Piece(self._players[0]))
 
     @staticmethod
     @lru_cache(maxsize=256)
@@ -205,6 +218,7 @@ class Morelli:
         print("Done all mod rules")
         return True
 
+
     def move(self, from_cell, where_cell):
         if(from_cell.is_empty()):
             print('Tried to move empty')
@@ -228,6 +242,8 @@ class Morelli:
 
         return True
 
+    def put_king(self, player):
+        self._cells[self.center[0]][self.center[0]].set_holding(King(player))
 
     def main_loop(self):
 

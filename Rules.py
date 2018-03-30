@@ -126,8 +126,40 @@ class ChangePiece(Rule):
                 if(self.cell_attacked(ad_cell, curr_player)):
                     self.game.change_player(ad_cell)
 
+class PutKing(Rule):
+
+    def __init__(self, game):
+        super().__init__(game, self.frames)
+
+    def frames(self, from_cell, to_cell):
+        curr_player = self.curr_player(to_cell)
+        order = to_cell.order
+
+        c1 = self.game._cells[order][order]
+        c2 = self.game._cells[-order-1][-order-1]
+        c3 = self.game._cells[+order][-order-1]
+        c4 = self.game._cells[-order-1][+order]
+
+        if(c1.is_empty() or c2.is_empty() or c3.is_empty() or c4.is_empty()):
+            return
+
+        print('Arent empty')
+
+        if(c1.get_holding().owner == c2.get_holding().owner 
+                and c2.get_holding().owner == c3.get_holding().owner
+                and c3.get_holding().owner == c4.get_holding().owner):
+            print("We have frame AND KING")
+            self.game.put_king(curr_player)
 
 
+
+class Winning(Rule):
+
+    def __init__(self, game):
+        super().__init__(game, self.avaliable_moves)
+
+    def avaliable_moves(self):
+        pass
 
 
 """

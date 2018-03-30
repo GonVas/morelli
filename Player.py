@@ -1,16 +1,20 @@
 class Player:
 
-    player_color = {'black' : (10,10,10), 'white' : (240,240,240)}
+    player_color = {'black' : (10,10,10), 'white' : (240,240,240),
+                    'green' : (10, 220, 10), 'red' : (220, 10, 10)}
 
-    def __init__(self, color, game, pygame):
+    def __init__(self, color, game, pygame, king_col='green'):
         self.game = game
         self.color = color
         self.ignore_mouse = False
         self.pygame = pygame
+        self.king_col = king_col
 
     def color_to_rgb(self):
-        #print('Owner color ' + Player.player_color[self.color])
         return Player.player_color[self.color]
+
+    def king_color_to_rgb(self):
+        return Player.player_color[self.king_col]
 
     def move(self, events):
         for event in events:
