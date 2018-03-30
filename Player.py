@@ -3,20 +3,25 @@ import collections
 class Player:
 
     player_color = {'black' : (10,10,10), 'white' : (240,240,240),
+                    'very_grey' : (40,40,40), 'light_grey':(170, 170, 170),
                     'green' : (10, 220, 10), 'red' : (220, 10, 10)}
 
-    def __init__(self, color, game, pygame, king_col='green'):
+    def __init__(self, color, game, pygame, king_col='green', ghost_color='light_grey'):
         self.game = game
         self.color = color
         self.ignore_mouse = False
         self.pygame = pygame
         self.king_col = king_col
+        self.ghost_color = ghost_color
 
     def color_to_rgb(self):
         return Player.player_color[self.color]
 
     def king_color_to_rgb(self):
         return Player.player_color[self.king_col]
+
+    def ghost_color_to_rgb(self):
+        return Player.player_color[self.ghost_color]
 
     def move(self, events):
         for event in events:

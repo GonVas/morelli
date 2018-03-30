@@ -7,7 +7,7 @@ import threading
 import random
 
 from Player import Player, AI
-from Cell import Cell, Piece, King
+from Cell import Cell, Piece, King, PieceGhost
 import Rules
 
 class Morelli:
@@ -113,8 +113,16 @@ class Morelli:
 
         self.reset_test_env()
 
-        print("len of aval_moves: %d " % len(self._players[1].avaiable_moves()[self._cells[1][3]]))
+        aval = self._players[1].avaiable_moves()[self._cells[1][3]]
 
+        print("len of aval_moves: %d " % len(aval))
+
+        self.draw_ghosts(self._players[1], aval)
+
+    def draw_ghosts(self, player, where):
+        for cell in where:
+            print("Pos:%d, %d" % (cell.pos[0], cell.pos[1]))
+            cell.set_holding(PieceGhost(player))
 
     @staticmethod
     @lru_cache(maxsize=256)
@@ -157,6 +165,12 @@ class Morelli:
                 new_cell = Cell([x, y], order)
                 cells.append(new_cell)
             self._cells.append(cells)
+
+    def erase_ghosts(self):
+        for cellx in self._cells:
+            for cell in cellx:
+                if(not cell.is_empty() and cell.get_holding().type == 'ghost'):
+                    cell.set_empty()
 
     def figure_dims(self, dim, cell_size, bottom_bar):
         if(dim < 7 or dim > 17):

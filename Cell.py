@@ -45,3 +45,11 @@ class King(Piece):
 
     def color_str(self):
         return self.owner.color
+
+class PieceGhost(Piece):
+
+    def __init__(self, player, obj_type='ghost'):
+        super().__init__(player, obj_type)
+
+    def color(self):
+        return self.owner.ghost_color_to_rgb()
