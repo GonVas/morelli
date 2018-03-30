@@ -113,15 +113,15 @@ class Morelli:
 
         self.reset_test_env()
 
-        aval = self._players[1].avaiable_moves()[self._cells[1][3]]
+        aval = self._players[0].avaiable_moves()[self._cells[0][3]]
 
         print("len of aval_moves: %d " % len(aval))
 
-        self.draw_ghosts(self._players[1], aval)
+        self.draw_ghosts(self._players[0], aval)
 
     def draw_ghosts(self, player, where):
         for cell in where:
-            print("Pos:%d, %d" % (cell.pos[0], cell.pos[1]))
+            #print("Pos:%d, %d" % (cell.pos[0], cell.pos[1]))
             cell.set_holding(PieceGhost(player))
 
     @staticmethod
@@ -137,7 +137,7 @@ class Morelli:
         return (vec_sum**(1/p))
 
     def max_order(self):
-        return self.pnorm(self.center)
+        return int(self.pnorm(self.center))
 
     def init_players(self, option):
         p1 = Player('black', self, pygame)

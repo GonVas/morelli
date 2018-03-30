@@ -13,7 +13,7 @@ class Cell:
         return self._holding
 
     def is_empty(self):
-        if(self._holding == "empty"):
+        if(self._holding == "empty" ):
             return True
         else:
             return False
