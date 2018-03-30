@@ -14,7 +14,7 @@ class TestMorelli(unittest.TestCase):
     def test_creation(self):
         self.assertEqual(len(self.game._cells), 11, "Wrong cell Size")
 
-    def test_move(self):
+    def test_move_check(self):
 
         from_cell = self.game._cells[0][3]
 
@@ -36,7 +36,24 @@ class TestMorelli(unittest.TestCase):
 
         self.assertTrue(self.game.move(from_cell, to_cell_topg2), "Supossed to move, did not 2")
 
+    def test_move_mod(self):
 
+        self.game.reset_test_env()
+
+        to_cell_eat = self.game._cells[1][4]
+
+        from_cell = self.game._cells[0][3]
+
+        self.assertEqual(self.game._cells[1][3].get_holding().color_str(), "white", "Start piece bad color")
+
+        self.game.move(from_cell, to_cell_eat)
+
+        self.assertEqual(self.game._cells[1][3].get_holding().color_str(), "black", "Did not capture white piece")
+
+        self.game.move(self.game._cells[1][3], self.game._cells[2][4])
+        
+        self.assertEqual(self.game._cells[1][2].get_holding().color_str(), "black", "Pieces chaging color1")
+        self.assertEqual(self.game._cells[1][4].get_holding().color_str(), "black", "Pieces chaging color2")
 
 if __name__ == '__main__':
     unittest.main()

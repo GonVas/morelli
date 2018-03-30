@@ -8,7 +8,7 @@ class Rule:
         self.method = method
 
     def curr_player(self, from_cell):
-        curr_player = from_cell.get_holding().owner
+        return from_cell.get_holding().owner
 
     def do_rule(self, from_cell, to_cell):
         return self.method(from_cell, to_cell)
@@ -21,7 +21,6 @@ class NoInWay(Rule):
         super().__init__(game, self.no_in_way)
 
     def no_in_way(self, from_cell, to_cell):
-        #TODO needs work on one small case
 
         x_diff = to_cell.pos[0] - from_cell.pos[0]
         y_diff = to_cell.pos[1] - from_cell.pos[1]
@@ -70,17 +69,74 @@ class NoInWay(Rule):
         return points
 
 
-
 class ChangePiece(Rule):
 
     def __init__(self, game):
         super().__init__(game, self.change_piece)
 
+    def get_adjencts(self, cell):
+
+        X = Y = self.game.dim
+
+        neighbors = lambda x, y : [(x2, y2) for x2 in range(x-1, x+2)
+                               for y2 in range(y-1, y+2)
+                               if (-1 < x <= X and
+                                   -1 < y <= Y and
+                                   (x != x2 or y != y2) and
+                                   (0 <= x2 <= X) and
+                                   (0 <= y2 <= Y))]
+
+        adjencts = []
+        for x, y in neighbors(cell.pos[0], cell.pos[1]):
+            adjencts.append(self.game._cells[x][y])
+
+        return adjencts
+
+    def orth_check(self, adj_cell, curr_player):
+        print(curr_player)
+        curr_cell1 = self.game._cells[adj_cell.pos[0]+1][adj_cell.pos[1]]
+        curr_cell2 = self.game._cells[adj_cell.pos[0]-1][adj_cell.pos[1]]
+        if(not curr_cell1.is_empty() and not curr_cell2.is_empty()):
+            if(curr_cell1.get_holding().owner == curr_cell2.get_holding().owner):
+                return True
+
+        curr_cell1 = self.game._cells[adj_cell.pos[0]][adj_cell.pos[1]+1]
+        curr_cell2 = self.game._cells[adj_cell.pos[0]][adj_cell.pos[1]-1]
+        if(not curr_cell1.is_empty() and not curr_cell2.is_empty()):
+            if(curr_cell1.get_holding().owner == curr_cell2.get_holding().owner ):
+                return True
+
+        return False
+
+
+    def cell_attacked(self, cell, curr_player):
+        for adj_cell in self.get_adjencts(cell):
+            if( self.orth_check(cell, curr_player)): #or self.diag_check(cell, curr_player) ):
+                return True
+        return False
+            
+
     def change_piece(self, from_cell, to_cell):
-        curr_player = self.curr_player(from_cell)
+        curr_player = self.curr_player(to_cell)
         list_adject = self.get_adjencts(to_cell)
         
         for ad_cell in list_adject:
-            if(ad_cell.get_holding().owner != curr_player):
+            #print("ad_cell X,Y: (%d, %d)" % (ad_cell.pos[0], ad_cell.pos[1]))
+            if(not ad_cell.is_empty() and ad_cell.get_holding().owner != curr_player):
                 if(self.cell_attacked(ad_cell, curr_player)):
-                    ad_cell.owner = curr_player
+                    self.game.change_player(ad_cell)
+
+
+
+
+
+"""
+    def diag_check(cell, curr_player):
+        return False
+        if (self.game._cells[adj_cell.pos[0]][adj_cell.pos[1]+1].get_holding().owner ==
+             self.game._cells[adj_cell.pos[0]][adj_cell.pos[1]-1].get_holding().owner and self.game._cells[adj_cell.pos[0]+1][adj_cell.pos[1]+1].get_holding().owner == curr_player):
+                return True
+            if (self.game._cells[adj_cell.pos[0]+1][adj_cell.pos[1]].get_holding().owner ==
+             self.game._cells[adj_cell.pos[0]-1][adj_cell.pos[1]].get_holding().owner and self.game._cells[adj_cell.pos[0]+1][adj_cell.pos[1]+1].get_holding().owner == curr_player):
+                return True
+"""

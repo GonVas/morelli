@@ -83,7 +83,7 @@ class Morelli:
 
     def add_rules(self):
         self.bool_rules = [Rules.NoInWay(self)]
-        self.modifying_rules = []
+        self.modifying_rules = [Rules.ChangePiece(self)]
 
     def reset_test_env(self):
 
@@ -93,6 +93,7 @@ class Morelli:
 
         self._cells[0][3].set_holding(Piece(self._players[0]))
         self._cells[1][3].set_holding(Piece(self._players[1]))
+        self._cells[1][2].set_holding(Piece(self._players[0]))
 
     @staticmethod
     @lru_cache(maxsize=256)
@@ -213,6 +214,20 @@ class Morelli:
             from_cell.set_holding('empty')
             return self.mod_rules(from_cell, where_cell)
 
+    def change_player(self, cell):
+        if(cell.is_empty()):
+            print("Changed empty player")
+            return False
+
+        curr_owner = cell.get_holding().owner
+
+        if(curr_owner == self._players[0]):
+            cell.get_holding().owner = self._players[1]
+        else:
+            cell.get_holding().owner = self._players[0]
+
+        return True
+
 
     def main_loop(self):
 
@@ -248,4 +263,4 @@ class Morelli:
 
 
 if __name__ == "__main__":
-    game = Morelli()
+    game = Morelli(turn_time=9)

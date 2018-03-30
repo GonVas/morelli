@@ -30,3 +30,7 @@ class Piece:
     def color(self):
         #print('color to owner ' + self.owner.color_to_rgb())
         return self.owner.color_to_rgb()
+
+    def color_str(self):
+        #print('color to owner ' + self.owner.color_to_rgb())
+        return self.owner.color
