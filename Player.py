@@ -1,3 +1,5 @@
+import collections
+
 class Player:
 
     player_color = {'black' : (10,10,10), 'white' : (240,240,240),
@@ -48,3 +50,27 @@ class AI(Player):
 
     def move(self, events):
         print('AI THINKING')
+
+    def get_mycells(self):
+        res = []
+
+        for cellx in self.game._cells:
+            for cell in cellx:
+                if(not cell.is_empty() and cell.get_holding().owner == self):
+                    res.append(cell)
+
+        return res
+
+    def avaiable_moves(self):
+        can_move = self.get_mycells()
+        print("can_move len: %d " % len(can_move))
+        aval_moves = collections.defaultdict(list)
+        for cell in can_move:
+            if( cell.order < self.game.max_order()-1 ):
+                empty_next_order = self.game.get_order_cells(cell.order-1, check_empty=True)
+                for empty_cell in empty_next_order:
+                    if(self.game.valid_move(cell, empty_cell)):
+                        aval_moves[cell].append(empty_cell)
+            else:
+                can_move.remove(cell)
+        return aval_moves

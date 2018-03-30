@@ -48,7 +48,8 @@ class Morelli:
         self.init_players(option)
         self.init_place()
         self.add_rules()
-        self.reset_test_env2()
+        
+        self.reset_test_env3()
 
         if(testing):
             self.reset_test_env2()
@@ -108,6 +109,13 @@ class Morelli:
 
         self._cells[1][1].set_holding(Piece(self._players[0]))
 
+    def reset_test_env3(self):
+
+        self.reset_test_env()
+
+        print("len of aval_moves: %d " % len(self._players[1].avaiable_moves()[self._cells[1][3]]))
+
+
     @staticmethod
     @lru_cache(maxsize=256)
     def pnorm(vec, p=5):
@@ -120,6 +128,9 @@ class Morelli:
             vec_sum += val**p
         return (vec_sum**(1/p))
 
+    def max_order(self):
+        return self.pnorm(self.center)
+
     def init_players(self, option):
         p1 = Player('black', self, pygame)
 
@@ -130,6 +141,9 @@ class Morelli:
 
         self._players = [p1, p2]
         self.who_turn = 0
+
+    def valid_move(self, from_cell, to_cell):
+        return self.check_rules(from_cell, to_cell)
 
     def init_cells(self):
         self._cells = []
@@ -218,6 +232,17 @@ class Morelli:
         print("Done all mod rules")
         return True
 
+    def get_order_cells(self, order, check_empty=False):
+        res = []
+        for cellx in self._cells:
+            for cell in cellx:
+                if(cell.order == order):
+                    if(check_empty):
+                        if(cell.is_empty()):
+                            res.append(cell)
+                    else:
+                        res.append(cell)
+        return res
 
     def move(self, from_cell, where_cell):
         if(from_cell.is_empty()):
