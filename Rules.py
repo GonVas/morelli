@@ -1,5 +1,6 @@
 from fractions import Fraction
 from functools import lru_cache
+from collections import defaultdict
 
 class Rule:
 
@@ -68,8 +69,16 @@ class NoInWay(Rule):
         
         return points
 
+class ModRule(Rule):
+    #Maybe erase this.
 
-class ChangePiece(Rule):
+    def __init__(self, game, method):
+        super().__init__(game, method)
+
+    def value():
+        return 0
+
+class ChangePiece(ModRule):
 
     def __init__(self, game):
         super().__init__(game, self.change_piece)
@@ -126,7 +135,7 @@ class ChangePiece(Rule):
                 if(self.cell_attacked(ad_cell, curr_player)):
                     self.game.change_player(ad_cell)
 
-class PutKing(Rule):
+class PutKing(ModRule):
 
     def __init__(self, game):
         super().__init__(game, self.frames)
@@ -161,14 +170,22 @@ class Winning(Rule):
     def avaliable_moves(self):
         pass
 
+def board_value(board):
+    king_val = 50
+    piece_val = 10
+    order_val = 0.5
 
-"""
-    def diag_check(cell, curr_player):
-        return False
-        if (self.game._cells[adj_cell.pos[0]][adj_cell.pos[1]+1].get_holding().owner ==
-             self.game._cells[adj_cell.pos[0]][adj_cell.pos[1]-1].get_holding().owner and self.game._cells[adj_cell.pos[0]+1][adj_cell.pos[1]+1].get_holding().owner == curr_player):
-                return True
-            if (self.game._cells[adj_cell.pos[0]+1][adj_cell.pos[1]].get_holding().owner ==
-             self.game._cells[adj_cell.pos[0]-1][adj_cell.pos[1]].get_holding().owner and self.game._cells[adj_cell.pos[0]+1][adj_cell.pos[1]+1].get_holding().owner == curr_player):
-                return True
-"""
+    vals = {}
+    vals = defaultdict(lambda:0, vals)
+
+    for cellx in board:
+        for cell in cellx:
+            if(not cell.is_empty()):
+                if(cell.get_holding().type == 'king'):
+                    vals[cell.get_holding().owner] += king_val
+                elif(cell.get_holding().type == 'regular'):
+                    vals[cell.get_holding().owner] += piece_val*(0.1+order_val*cell.order)
+                else:
+                    continue
+
+    return vals

@@ -5,6 +5,7 @@ from functools import lru_cache
 import asyncio
 import threading
 import random
+from copy import deepcopy, copy
 
 from Player import Player, AI
 from Cell import Cell, Piece, King, PieceGhost
@@ -55,6 +56,7 @@ class Morelli:
             self.reset_test_env2()
 
         self.main_loop()
+        print("Game Ended")
 
     def init_place(self):
         pieces = [self.dim*2, self.dim*2]
@@ -113,11 +115,16 @@ class Morelli:
 
         self.reset_test_env()
 
-        aval = self._players[0].avaiable_moves()[self._cells[0][3]]
+        aval_moves = self._players[0].avaiable_moves()
+        aval = aval_moves[self._cells[0][3]]
 
         print("len of aval_moves: %d " % len(aval))
 
         self.draw_ghosts(self._players[0], aval)
+        
+        for val in self.avaliable_moves_val(aval_moves):
+            print("Val: %d", val)
+
 
     def draw_ghosts(self, player, where):
         for cell in where:
@@ -143,15 +150,28 @@ class Morelli:
         p1 = Player('black', self, pygame)
 
         if option == 'AIvsAI':
-            p1 = AI('black', self, pygame)
+            p1 = AI('black', self, pygame, turn_time=self.turn_time)
 
-        p2 = AI('white', self, pygame)
+        p2 = AI('white', self, pygame, turn_time=self.turn_time)
 
         self._players = [p1, p2]
         self.who_turn = 0
 
     def valid_move(self, from_cell, to_cell):
         return self.check_rules(from_cell, to_cell)
+
+    def avaliable_moves_val(self, aval_moves):
+        vals = []
+        old_cells = copy(self._cells)
+        for from_cell, aval_moves in aval_moves.items():
+            for mov in aval_moves:
+                self.move(from_cell, mov)
+                board_val = Rules.board_value(self._cells)
+                vals.append(board_val)
+                self._cells = copy(old_cells)
+
+        self._cells = old_cells
+        return vals
 
     def init_cells(self):
         self._cells = []
@@ -165,6 +185,9 @@ class Morelli:
                 new_cell = Cell([x, y], order)
                 cells.append(new_cell)
             self._cells.append(cells)
+
+    def get_center(self):
+        return self._cells[self.center[0]][self.center[0]]
 
     def erase_ghosts(self):
         for cellx in self._cells:
@@ -284,6 +307,15 @@ class Morelli:
     def put_king(self, player):
         self._cells[self.center[0]][self.center[0]].set_holding(King(player))
 
+    def check_winning(self):
+        if(len(self._players[0].avaiable_moves()) == 0 or len(self._players[1].avaiable_moves()) == 0):
+            if(self.get_center().is_empty()):
+                return "tie"
+            return self.get_center().get_holding().owner
+        else:
+            return None
+
+
     def main_loop(self):
 
          self.current_player = self._players[0]
@@ -313,6 +345,15 @@ class Morelli:
                     quit()
 
             curr_player.move(events)
+
+            winner = self.check_winning()
+            if(winner != None):
+                if(winner == "tie"):
+                    print("It was a tie")
+                    return True
+                print("Congrats, player %s Won." % (str(winner)))
+                return True
+
 
             pygame.display.update()
 

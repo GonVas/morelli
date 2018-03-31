@@ -1,4 +1,7 @@
 import collections
+from math import log, sqrt
+from copy import deepcopy, copy
+import MonteCarlo
 
 class Player:
 
@@ -74,11 +77,13 @@ class Player:
 
 class AI(Player):
 
-    def __init__(self, color, game, pygame, dificulty=0):
+    def __init__(self, color, game, pygame, turn_time, dificulty=0):
         super().__init__(color, game, pygame)
         self.dificulty = dificulty
         self.ignore_mouse = True
+        self.turn_time = turn_time
 
     def move(self, events):
         print('AI THINKING')
+        #monte = MonteCarlo(self.game, copy(self.game._cells), self, self.turn_time)
 
