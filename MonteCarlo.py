@@ -11,9 +11,9 @@ class MonteCarlo:
         self.max_moves = max_moves
         self.ucbt_C = ucbt_C
         self.board = board
-        self.me_player = self
+        self.me_player = player
         self.other_player = other
-        self.players = [self, other]
+        self.players = [player, other]
         self.curr_player_it = 0
         self.calculation_time = datetime.timedelta(seconds=max_time)
         self.states = [board]
@@ -36,13 +36,13 @@ class MonteCarlo:
         # current game state and return it.
         self.max_depth = 0
         state = self.states[-1]
-        aval_moves = state.avaiable_moves(self.me_player) #self.curr_player.aval_moves(self.board[:])
+        legal = state.avaiable_moves(self.me_player, flat=True) #self.curr_player.aval_moves(self.board[:])
 
         # Bail out early if there is no real choice to be made.
-        if len(aval_moves) == 0:
+        if len(legal) == 0:
             return
         if len(legal) == 1:
-            return aval_moves[0]
+            return legal[0]
 
         games = 0
         begin = datetime.datetime.utcnow()
@@ -50,7 +50,7 @@ class MonteCarlo:
             self.run_simulation()
             games += 1
 
-        moves_states = [(p, self.board.next_state(state, p)) for p in legal]
+        moves_states = [(p, self.next_state(state, p)) for p in legal]
 
         # Display the number of calls of `run_simulation` and the
         # time elapsed.
@@ -87,12 +87,12 @@ class MonteCarlo:
         visited_states = set()
         states_copy = self.states[:]
         state = states_copy[-1]
-        #player = self.board.current_player(state)
+        player = state.current_player()
  
         expand = True
         for t in range(1, self.max_moves + 1):
-            legal = self.curr_player().aval_moves(self.board[:])
-            moves_states = [(p, self.board.next_state(state, p)) for p in legal]
+            legal = state.avaiable_moves(self.me_player, flat=True)
+            moves_states = [(p, self.next_state(state, p)) for p in legal]
 
             if all(plays.get((player, S)) for p, S in moves_states):
                 # If we have stats on all of the legal moves here, use them.
@@ -120,8 +120,8 @@ class MonteCarlo:
 
             visited_states.add((player, state))
 
-            player = self.board.current_player(state)
-            winner = self.board.winner(states_copy)
+            player = state.current_player()
+            winner = states_copy.check_winning()
             if winner:
                 break
 
@@ -131,3 +131,6 @@ class MonteCarlo:
             plays[(player, state)] += 1
             if player == winner:
                 wins[(player, state)] += 1
+
+    def next_state(self, board, move):
+        return board.move(move[0], move[1], destructive=False )

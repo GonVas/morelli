@@ -134,7 +134,7 @@ class ChangePiece(ModRule):
             #print("ad_cell X,Y: (%d, %d)" % (ad_cell.pos[0], ad_cell.pos[1]))
             if(not ad_cell.is_empty() and ad_cell.get_holding().owner != curr_player):
                 if(self.cell_attacked(ad_cell, curr_player)):
-                    self.board.change_player(ad_cell)
+                    self.board.change_player_holding(ad_cell)
 
 class PutKing(ModRule):
 
@@ -179,7 +179,7 @@ def board_value(board):
     vals = {}
     vals = defaultdict(lambda:0, vals)
 
-    for cellx in board:
+    for cellx in board._cells:
         for cell in cellx:
             if(not cell.is_empty()):
                 if(cell.get_holding().type == 'king'):

@@ -92,7 +92,7 @@ class Morelli:
 
     def main_loop(self):
 
-         self.current_player = self.board._players[0]
+         #self.current_player = self.board._players[0]
          self.curr_turn_time = 0
 
          while True and not self.testing:
@@ -102,11 +102,11 @@ class Morelli:
             self.curr_turn_time += time_passed
 
             self.turn = (self.curr_turn_time%(self.turn_time*2  )) // (self.turn_time//2)%2
-            curr_player = self.board.get_player(round(self.turn))
+            #curr_player = self.board.get_player(round(self.turn))
 
             self.board_draw()
             myfont = pygame.font.SysFont("comicsansms", 30)
-            string = str(curr_player)
+            string = str(self.board.current_player())
             label = myfont.render(string, 1, Morelli.white)
 
             self.game_display.blit(label, (20, 620))
@@ -118,7 +118,7 @@ class Morelli:
                     pygame.quit()
                     quit()
 
-            curr_player.move(events, pygame, self)
+            self.board.current_player().move(events, pygame, self)
 
             winner = self.board.check_winning()
             if(winner != None):
