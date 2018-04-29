@@ -4,17 +4,16 @@ from math import log, sqrt
 from copy import deepcopy, copy
 
 class MonteCarlo:
-    def __init__(self, game, board, player, other, max_time, ucbt_C=1.4, max_moves=500):
+    def __init__(self, board, player, max_time, ucb_C=1.4, max_moves=500):
         # Takes an instance of a Board and optionally some keyword
         # arguments.  Initializes the list of game states and the
         # statistics tables.
         self.max_moves = max_moves
-        self.ucbt_C = ucbt_C
+        self.ucb_C = ucb_C
         self.board = board
         self.me_player = player
-        self.other_player = other
-        self.players = [player, other]
-        self.curr_player_it = 0
+        #self.other_player = other
+        #self.players = [player, other
         self.calculation_time = datetime.timedelta(seconds=max_time)
         self.states = [board]
         self.wins = {}
@@ -23,13 +22,6 @@ class MonteCarlo:
     def update(self, state):
         # Takes a game state, and appends it to the history.
          self.states.append(state)
-
-    def curr_player(self):
-        return self.players[self.curr_player_it]
-
-    def switch_player(self):
-        self.curr_player_it = (self.curr_player_it+1) %2
-        return self.players[self.curr_player_it]
 
     def get_play(self):
         # Causes the AI to calculate the best move from the
@@ -100,7 +92,7 @@ class MonteCarlo:
                     sum(plays[(player, S)] for p, S in moves_states))
                 value, move, state = max(
                     ((wins[(player, S)] / plays[(player, S)]) +
-                     self.C * sqrt(log_total / plays[(player, S)]), p, S)
+                     self.ucb_C * sqrt(log_total / plays[(player, S)]), p, S)
                     for p, S in moves_states
                 )
             else:

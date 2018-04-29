@@ -236,9 +236,9 @@ class Board:
         p1 = Player('black')
 
         if option == 'AIvsAI':
-            p1 = AI('black', turn_time=self.turn_time)
+            p1 = AI(self, 'black', turn_time=self.turn_time)
 
-        p2 = AI('white', turn_time=self.turn_time)
+        p2 = AI(self, 'white', turn_time=self.turn_time)
 
         self.curr_player = 0
         self._players = [p1, p2]
@@ -246,6 +246,9 @@ class Board:
 
     def current_player(self):
         return self._players[self.curr_player]
+
+    def other_player(self):
+        return self._players[(self.curr_player + 1) % 2]
 
     def change_player(self):
         self.curr_player = (self.curr_player + 1) % 2
