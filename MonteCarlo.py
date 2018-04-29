@@ -16,6 +16,7 @@ class MonteCarlo:
         self.players = [self, other]
         self.curr_player_it = 0
         self.calculation_time = datetime.timedelta(seconds=max_time)
+        self.states = [board]
         self.wins = {}
         self.plays = {}
 
@@ -35,7 +36,7 @@ class MonteCarlo:
         # current game state and return it.
         self.max_depth = 0
         state = self.states[-1]
-        aval_moves = self.curr_player.aval_moves(self.board[:])
+        aval_moves = state.avaiable_moves(self.me_player) #self.curr_player.aval_moves(self.board[:])
 
         # Bail out early if there is no real choice to be made.
         if len(aval_moves) == 0:

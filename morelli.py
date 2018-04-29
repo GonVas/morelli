@@ -5,11 +5,10 @@ from functools import lru_cache
 import asyncio
 import threading
 import random
+from Board import Board
 from copy import deepcopy, copy
 
-from Player import Player, AI
 from Cell import Cell, Piece, King, PieceGhost
-import Rules
 
 class Morelli:
 
@@ -44,156 +43,17 @@ class Morelli:
             pygame.display.update()
             self.clock = pygame.time.Clock()
         
-        self.init_cells()
+        self.board = Board(dim, option, turn_time)
         self.turn_time = turn_time
-        self.init_players(option)
-        self.init_place()
-        self.add_rules()
         
-        self.reset_test_env3()
+        self.board.reset_test_env3()
 
         if(testing):
-            self.reset_test_env2()
+            self.board.reset_test_env2()
 
         self.main_loop()
         print("Game Ended")
 
-    def init_place(self):
-        pieces = [self.dim*2, self.dim*2]
-        for i in range(self.dim):
-            remove = round(random.uniform(0, 1))
-            if(pieces[remove] == 0):
-                remove = (remove + 1)%2
-
-            pieces[remove] -= 1
-            piece = Piece(self._players[remove])
-            piece2 = Piece(self._players[(remove+1)%2])
-            self._cells[i][0].set_holding(piece) 
-            self._cells[i][self.dim-1].set_holding(piece2) 
-
-        for i in range(1, self.dim):
-            remove = round(random.uniform(0, 1))
-            if(pieces[remove] == 0):
-                remove = (remove + 1)%2
-
-            pieces[remove] -= 1
-            piece = Piece(self._players[remove])
-            piece2 = Piece(self._players[(remove+1)%2])
-            self._cells[0][i].set_holding(piece) 
-            self._cells[self.dim-1][i].set_holding(piece2) 
-
-        #print('Bag have %d whites and %d blacks'% (pieces[0], pieces[1]))
-
-    def add_rules(self):
-        self.bool_rules = [Rules.NoInWay(self)]
-        self.modifying_rules = [Rules.ChangePiece(self), Rules.PutKing(self)]
-        self.winner_rules = [Rules.Winning(self)]
-
-    def reset_test_env(self):
-
-        for cellx in self._cells:
-            for cellxy in cellx:
-                cellxy.set_empty()
-
-        self._cells[0][3].set_holding(Piece(self._players[0]))
-        self._cells[1][3].set_holding(Piece(self._players[1]))
-        self._cells[1][2].set_holding(Piece(self._players[0]))
-
-    def reset_test_env2(self):
-
-        for cellx in self._cells:
-            for cellxy in cellx:
-                cellxy.set_empty()
-
-        self._cells[3][3].set_holding(Piece(self._players[0]))
-        self._cells[-4][-4].set_holding(Piece(self._players[0]))
-        self._cells[3][-4].set_holding(Piece(self._players[0]))
-
-        self._cells[1][1].set_holding(Piece(self._players[0]))
-
-    def reset_test_env3(self):
-
-        self.reset_test_env()
-
-        aval_moves = self._players[0].avaiable_moves()
-        aval = aval_moves[self._cells[0][3]]
-
-        print("len of aval_moves: %d " % len(aval))
-
-        self.draw_ghosts(self._players[0], aval)
-        
-        for val in self.avaliable_moves_val(aval_moves):
-            print("Val: %d", val)
-
-
-    def draw_ghosts(self, player, where):
-        for cell in where:
-            #print("Pos:%d, %d" % (cell.pos[0], cell.pos[1]))
-            cell.set_holding(PieceGhost(player))
-
-    @staticmethod
-    @lru_cache(maxsize=256)
-    def pnorm(vec, p=5):
-        # en.wikipedia.org/wiki/Norm_(mathematics), pnorm
-        # 1 - taxicab/manhattan distance
-        # 2 - Euclidean distance
-        # for morelli square, p must aproach infinity but carefull with OVF.
-        vec_sum = 0
-        for val in vec:
-            vec_sum += val**p
-        return (vec_sum**(1/p))
-
-    def max_order(self):
-        return int(self.pnorm(self.center))
-
-    def init_players(self, option):
-        p1 = Player('black', self, pygame)
-
-        if option == 'AIvsAI':
-            p1 = AI('black', self, pygame, turn_time=self.turn_time)
-
-        p2 = AI('white', self, pygame, turn_time=self.turn_time)
-
-        self._players = [p1, p2]
-        self.who_turn = 0
-
-    def valid_move(self, from_cell, to_cell):
-        return self.check_rules(from_cell, to_cell)
-
-    def avaliable_moves_val(self, aval_moves):
-        vals = []
-        old_cells = copy(self._cells)
-        for from_cell, aval_moves in aval_moves.items():
-            for mov in aval_moves:
-                self.move(from_cell, mov)
-                board_val = Rules.board_value(self._cells)
-                vals.append(board_val)
-                self._cells = copy(old_cells)
-
-        self._cells = old_cells
-        return vals
-
-    def init_cells(self):
-        self._cells = []
-        self.center = (self.dim//2, self.dim//2)
-        for x in range(self.dim):
-            cells = []
-            for y in range(self.dim):
-                order = int(Morelli.pnorm(
-                    frozenset([abs(x-self.center[0]),abs(y-self.center[0])])))
-                order = -order + self.center[0] 
-                new_cell = Cell([x, y], order)
-                cells.append(new_cell)
-            self._cells.append(cells)
-
-    def get_center(self):
-        return self._cells[self.center[0]][self.center[0]]
-
-    def erase_ghosts(self):
-        for cellx in self._cells:
-            for cell in cellx:
-                if(not cell.is_empty() and cell.get_holding().type == 'ghost'):
-                    cell.set_empty()
 
     def figure_dims(self, dim, cell_size, bottom_bar):
         if(dim < 7 or dim > 17):
@@ -216,7 +76,7 @@ class Morelli:
         for i in range(self.dim):
             for j in range(self.dim):
                 mod = self.dim//2
-                cell = self._cells[i][j]
+                cell = self.board.get_cells()[i][j]
                 final_pos = (cell.pos[0] * self.cell_size, cell.pos[1] * self.cell_size, self.cell_size, self.cell_size)
                 pygame.draw.rect(self.game_display, Morelli.colors[cell.order], final_pos)
                 if(not cell.is_empty()):
@@ -230,95 +90,9 @@ class Morelli:
             final_pos = (click_cell_x * self.cell_size, click_cell_y * self.cell_size, self.cell_size, self.cell_size)
             pygame.draw.rect(self.game_display, (0,250,0), final_pos)
 
-    def select_cell(self, click_cell_x, click_cell_y):
-
-        if(click_cell_x >= self.dim or click_cell_y >= self.dim):
-            return
-
-        is_buff_empty = not hasattr(self, 'sel_buf') or self.sel_buf == "empty"
-
-        clicked_cell = self._cells[click_cell_x][click_cell_y]
-        if(clicked_cell.is_empty() and is_buff_empty):
-            return
-
-        # forgive me, bad code ahead
-
-        if is_buff_empty:
-            print('Sel buf: ' + str(clicked_cell.is_empty()))
-            self.sel_buf = clicked_cell
-            return
-        else:
-            if self.sel_buf.get_holding().owner == self.current_player and self.sel_buf.order < clicked_cell.order:
-                print('moving %s  to %s ' % (self.sel_buf, clicked_cell))
-                self.move(self.sel_buf, clicked_cell)
-
-        self.sel_buf = "empty"
-        #print('Cliked cell %d,%d whose owner is: %s'% (click_cell_x, click_cell_y, owner) )
-
-    def check_rules(self, from_cell, to_cell):
-        for bool_rule in self.bool_rules:
-            if(not bool_rule.do_rule(from_cell, to_cell)):
-                print("FAILED A RULE")
-                return False
-        print("Passed all rules")
-        return True
-
-    def mod_rules(self, from_cell, to_cell):
-        for mod_rule in self.modifying_rules:
-            mod_rule.do_rule(from_cell, to_cell)
-        print("Done all mod rules")
-        return True
-
-    def get_order_cells(self, order, check_empty=False):
-        res = []
-        for cellx in self._cells:
-            for cell in cellx:
-                if(cell.order == order):
-                    if(check_empty):
-                        if(cell.is_empty()):
-                            res.append(cell)
-                    else:
-                        res.append(cell)
-        return res
-
-    def move(self, from_cell, where_cell):
-        if(from_cell.is_empty()):
-            print('Tried to move empty')
-            return False
-        if(self.check_rules(from_cell, where_cell)):
-            where_cell.set_holding(from_cell.get_holding())
-            from_cell.set_holding('empty')
-            return self.mod_rules(from_cell, where_cell)
-
-    def change_player(self, cell):
-        if(cell.is_empty()):
-            print("Changed empty player")
-            return False
-
-        curr_owner = cell.get_holding().owner
-
-        if(curr_owner == self._players[0]):
-            cell.get_holding().owner = self._players[1]
-        else:
-            cell.get_holding().owner = self._players[0]
-
-        return True
-
-    def put_king(self, player):
-        self._cells[self.center[0]][self.center[0]].set_holding(King(player))
-
-    def check_winning(self):
-        if(len(self._players[0].avaiable_moves()) == 0 or len(self._players[1].avaiable_moves()) == 0):
-            if(self.get_center().is_empty()):
-                return "tie"
-            return self.get_center().get_holding().owner
-        else:
-            return None
-
-
     def main_loop(self):
 
-         self.current_player = self._players[0]
+         self.current_player = self.board._players[0]
          self.curr_turn_time = 0
 
          while True and not self.testing:
@@ -328,7 +102,7 @@ class Morelli:
             self.curr_turn_time += time_passed
 
             self.turn = (self.curr_turn_time%(self.turn_time*2  )) // (self.turn_time//2)%2
-            curr_player = self._players[round(self.turn)]
+            curr_player = self.board.get_player(round(self.turn))
 
             self.board_draw()
             myfont = pygame.font.SysFont("comicsansms", 30)
@@ -344,9 +118,9 @@ class Morelli:
                     pygame.quit()
                     quit()
 
-            curr_player.move(events)
+            curr_player.move(events, pygame, self)
 
-            winner = self.check_winning()
+            winner = self.board.check_winning()
             if(winner != None):
                 if(winner == "tie"):
                     print("It was a tie")
