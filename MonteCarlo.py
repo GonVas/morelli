@@ -3,6 +3,8 @@ from random import choice
 from math import log, sqrt
 from copy import deepcopy, copy
 
+import pprint
+
 class MonteCarlo:
     def __init__(self, board, player, max_time, ucb_C=1.4, max_moves=500):
         # Takes an instance of a Board and optionally some keyword
@@ -84,7 +86,13 @@ class MonteCarlo:
         expand = True
         for t in range(1, self.max_moves + 1):
             legal = state.avaiable_moves(self.me_player, flat=True)
-            moves_states = [(p, self.next_state(state, p)) for p in legal]
+
+            #moves_states = [(p, self.next_state(state, p)) for p in legal]
+
+            moves_states = []
+            for legal_play in legal:
+                moves_states.append( (legal_play, self.next_state(state, legal_play)))
+
 
             if all(plays.get((player, S)) for p, S in moves_states):
                 # If we have stats on all of the legal moves here, use them.
@@ -131,4 +139,10 @@ class MonteCarlo:
                 wins[(player, state)] += 1
 
     def next_state(self, board, move):
-        return board.move(move[0], move[1], destructive=False )
+        print("before board: BBBBBBBBB\n")
+        board.print()
+        print("BEFOR BOARD PRINTED\n")
+
+        next_board = board.move(move[0], move[1], destructive=False ) 
+        next_board.print()
+        return next_board

@@ -177,8 +177,7 @@ class Board:
 
         self.reset_test_env()
 
-        print("First hash: %d" % (hash(self)))
-
+    
         aval_moves = self.avaiable_moves(self._players[0])
         aval = aval_moves[self._cells[0][3]]
         
@@ -187,7 +186,6 @@ class Board:
         for val in self.avaliable_moves_val(aval_moves):
             print("Val: %d", val)
 
-        print("Second hash: %d" % (hash(self)))
 
     def change_player_holding(self, cell):
         if(cell.is_empty()):
@@ -284,6 +282,19 @@ class Board:
                 for to_cell in to_cells:
                     flat_list.append([from_cell, to_cell])
             return flat_list
+
+    def print(self):
+        for cell_line in self._cells:
+            for cell in cell_line:
+                if(not cell.is_empty()):
+                    print("On pos (%d,%d) have piece %s. \n" % (cell.pos[0], cell.pos[1], cell.get_holding().color_str()))
+
+
+    def __eq__(self, other):
+        for i in range(0, len(self._cells)):
+            for j in range(0, len(self._cells[i])):
+                if( self._cells[i][j].get_holding() != self._cells[i][j].get_holding() ):
+                    return False
 
     @staticmethod
     @lru_cache(maxsize=256)

@@ -35,6 +35,11 @@ class Piece:
         #print('color to owner ' + self.owner.color_to_rgb())
         return self.owner.color
 
+    def __eq__(self, other):
+        if(isinstance(other, Piece)):
+            if(self.owner == other.owner and self.type == other.type):
+                return True
+        return False
 class King(Piece):
 
     def __init__(self, player, obj_type='king'):
