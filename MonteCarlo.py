@@ -113,7 +113,13 @@ class MonteCarlo:
             visited_states.add((player, state))
 
             player = state.current_player()
-            winner = states_copy.check_winning()
+            
+            winner = None
+            for possible_state in states_copy:
+                temp = possible_state.check_winning()
+                if( temp != None):
+                    winner = temp
+
             if winner:
                 break
 
