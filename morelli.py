@@ -45,11 +45,9 @@ class Morelli:
         
         self.board = Board(dim, option, turn_time)
         self.turn_time = turn_time
-        
-        self.board.reset_test_env3()
-
-        if(testing):
-            self.board.reset_test_env2()
+    
+        #if(not testing):
+            #self.board.reset_test_env3()
 
         self.main_loop()
         print("Game Ended")
@@ -69,7 +67,7 @@ class Morelli:
         self.display_width = dim*cell_size
         self.display_height = self.display_width + self.bottom_bar
 
-        print("Game Board with dimension:%sx%s and size %sx%s" % (self.dim, self.dim, self.display_width, self.display_height))
+        print("Game Board with dimension: %sx%s and size %sx%s" % (self.dim, self.dim, self.display_width, self.display_height))
 
     def board_draw(self):
         self.game_display.fill(Morelli.black)

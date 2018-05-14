@@ -44,7 +44,7 @@ class MonteCarlo:
             self.run_simulation()
             games += 1
 
-        moves_states = [(p, self.next_state(state, p)) for p in legal]
+        moves_states = [(p, MonteCarlo.next_state(state, p)) for p in legal]
 
         # Display the number of calls of `run_simulation` and the
         # time elapsed.
@@ -87,11 +87,11 @@ class MonteCarlo:
         for t in range(1, self.max_moves + 1):
             legal = state.avaiable_moves(self.me_player, flat=True)
 
-            #moves_states = [(p, self.next_state(state, p)) for p in legal]
+            #moves_states = [(p, MonteCarlo.next_state(state, p)) for p in legal]
 
             moves_states = []
             for legal_play in legal:
-                moves_states.append( (legal_play, self.next_state(state, legal_play)))
+                moves_states.append( (legal_play, MonteCarlo.next_state(state, legal_play)))
 
 
             if all(plays.get((player, S)) for p, S in moves_states):
@@ -138,11 +138,12 @@ class MonteCarlo:
             if player == winner:
                 wins[(player, state)] += 1
 
-    def next_state(self, board, move):
-        print("before board: BBBBBBBBB\n")
-        board.print()
-        print("BEFOR BOARD PRINTED\n")
+    @staticmethod
+    def next_state(board, move):
+  #      print("before board: BBBBBBBBB\n")
+  #      board.print()
+  #      print("BEFOR BOARD PRINTED\n")
 
         next_board = board.move(move[0], move[1], destructive=False ) 
-        next_board.print()
+  #      next_board.print()
         return next_board

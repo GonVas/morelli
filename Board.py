@@ -61,6 +61,13 @@ class Board:
             self._cells[0][i].set_holding(piece) 
             self._cells[self.dim-1][i].set_holding(piece2) 
 
+        self._cells[0][0].set_holding(Piece(self._players[0]))
+        self._cells[self.dim-1][self.dim-1].set_holding(Piece(self._players[1]))
+
+        self._cells[0][self.dim-1].set_holding(Piece(self._players[1]))
+        self._cells[self.dim-1][0].set_holding(Piece(self._players[0]))
+
+
     def get_center(self):
         return self._cells[self.center[0]][self.center[0]]
 
@@ -123,7 +130,7 @@ class Board:
 
     def move(self, from_cell, where_cell, destructive=True):
         if(from_cell.is_empty()):
-            print('Tried to move empty')
+            #print('Tried to move empty')
             return False
 
         if(destructive):
@@ -144,7 +151,7 @@ class Board:
                 new_cells.move(new_cells._cells[where_cell.pos[0]][where_cell.pos[1]], new_cells._cells[from_cell.pos[0]][from_cell.pos[1]])
                 return new_cells 
 
-        return "This should not happen"
+        return False
 
 
     def draw_ghosts(self, player, where):
