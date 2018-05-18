@@ -98,17 +98,25 @@ class ChangePiece(ModRule):
 
         adjencts = []
         for x, y in neighbors(cell.pos[0], cell.pos[1]):
-            adjencts.append(self.board._cells[x][y])
+            if(x >= 0 and x < self.board.dim and y >= 0 and y < self.board.dim ):
+                adjencts.append(self.board._cells[x][y])
 
         return adjencts
 
     def orth_check(self, adj_cell, curr_player):
         print(curr_player)
+
+        if(adj_cell.pos[0]+1 >= self.board.dim or adj_cell.pos[0]-1 < 0):
+            return False
+
         curr_cell1 = self.board._cells[adj_cell.pos[0]+1][adj_cell.pos[1]]
         curr_cell2 = self.board._cells[adj_cell.pos[0]-1][adj_cell.pos[1]]
         if(not curr_cell1.is_empty() and not curr_cell2.is_empty()):
             if(curr_cell1.get_holding().owner == curr_cell2.get_holding().owner):
                 return True
+
+        if(adj_cell.pos[1]+1 >= self.board.dim or adj_cell.pos[1]-1 < 0):
+            return False
 
         curr_cell1 = self.board._cells[adj_cell.pos[0]][adj_cell.pos[1]+1]
         curr_cell2 = self.board._cells[adj_cell.pos[0]][adj_cell.pos[1]-1]

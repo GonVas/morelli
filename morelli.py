@@ -33,11 +33,13 @@ class Morelli:
         (36,0,65)
     ]
 
-    def __init__(self, dim=11, cell_size=50, bottom_bar=200, option='PvsAI', turn_time=15, testing=False):
+    def __init__(self, dim=11, cell_size=50, bottom_bar=200, option='PvsAI', turn_time=15, testing=False, gui=True):
         self.figure_dims(dim, cell_size, bottom_bar)
 
         self.testing = testing
-        if(not testing):
+        self.gui = gui
+
+        if(self.gui):
             pygame.init()
             self.game_display = pygame.display.set_mode((self.display_width, self.display_height))
             pygame.display.update()
@@ -88,6 +90,25 @@ class Morelli:
             final_pos = (click_cell_x * self.cell_size, click_cell_y * self.cell_size, self.cell_size, self.cell_size)
             pygame.draw.rect(self.game_display, (0,250,0), final_pos)
 
+    def game_draw(self):
+        self.board_draw()
+        myfont = pygame.font.SysFont("comicsansms", 30)
+        string = str(self.board.current_player())
+        label = myfont.render(string, 1, Morelli.white)
+
+        self.game_display.blit(label, (20, 620))
+
+        events = pygame.event.get()
+
+        for event in events:
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                quit()
+
+        self.board.current_player().move(events, pygame, self)
+
+        pygame.display.update()
+
     def main_loop(self):
 
          #self.current_player = self.board._players[0]
@@ -102,22 +123,6 @@ class Morelli:
             self.turn = (self.curr_turn_time%(self.turn_time*2  )) // (self.turn_time//2)%2
             #curr_player = self.board.get_player(round(self.turn))
 
-            self.board_draw()
-            myfont = pygame.font.SysFont("comicsansms", 30)
-            string = str(self.board.current_player())
-            label = myfont.render(string, 1, Morelli.white)
-
-            self.game_display.blit(label, (20, 620))
-
-            events = pygame.event.get()
-
-            for event in events:
-                if event.type == pygame.QUIT:
-                    pygame.quit()
-                    quit()
-
-            self.board.current_player().move(events, pygame, self)
-
             winner = self.board.check_winning()
             if(winner != None):
                 if(winner == "tie"):
@@ -126,8 +131,9 @@ class Morelli:
                 print("Congrats, player %s Won." % (str(winner)))
                 return True
 
+            if(self.gui):
+                self.game_draw()
 
-            pygame.display.update()
 
 
 if __name__ == "__main__":
