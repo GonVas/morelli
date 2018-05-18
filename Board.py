@@ -103,12 +103,12 @@ class Board:
         # forgive me, bad code ahead
 
         if is_buff_empty:
-            print('Sel buf: ' + str(clicked_cell.is_empty()))
+            #print('Sel buf: ' + str(clicked_cell.is_empty()))
             self.sel_buf = clicked_cell
             return
         else:
             if self.sel_buf.get_holding().owner == current_player and self.sel_buf.order < clicked_cell.order:
-                print('moving %s  to %s ' % (self.sel_buf, clicked_cell))
+                #print('moving %s  to %s ' % (self.sel_buf, clicked_cell))
                 self.move(self.sel_buf, clicked_cell)
 
         self.sel_buf = "empty"
@@ -125,7 +125,7 @@ class Board:
     def mod_rules(self, from_cell, to_cell):
         for mod_rule in self.modifying_rules:
             mod_rule.do_rule(from_cell, to_cell)
-        print("Done all mod rules")
+        #print("Done all mod rules")
         return True
 
     def move(self, from_cell, where_cell, destructive=True):
@@ -133,8 +133,8 @@ class Board:
             #print('Tried to move empty')
             return False
 
-        if(destructive):
-            print('WARNING destructive move')
+        #if(destructive):
+            #print('WARNING destructive move')
 
         if(self.valid_move(from_cell,  where_cell)):
             if(destructive):
@@ -196,7 +196,7 @@ class Board:
 
     def change_player_holding(self, cell):
         if(cell.is_empty()):
-            print("Changed empty player")
+            #print("Changed empty player")
             return False
 
         curr_owner = cell.get_holding().owner
@@ -227,14 +227,21 @@ class Board:
     def valid_move(self, from_cell, to_cell):
         return self.check_rules(from_cell, to_cell)
 
-    def avaliable_moves_val(self, aval_moves):
-        vals = []
-        for from_cell, aval_move in aval_moves.items():
+    def avaliable_moves_val(self, aval_moves, player):
+        vals = {}
+        items = aval_moves
+
+        if(isinstance(aval_moves, dict)):
+           for from_cell, aval_move in aval_moves.items():
             for mov in aval_move:
                 new_bd = self.move(from_cell, mov, destructive=False)
-                board_val = Rules.board_value(new_bd)
-                vals.append(board_val)
-
+                vals[(from_cell, mov)] = Rules.board_value(new_bd)[player.color]
+        else:
+           for from_cell, to_cell in aval_moves:
+                new_bd = self.move(from_cell, to_cell, destructive=False)
+                val = Rules.board_value(new_bd)[player.color]
+                #print('VALUE IS : %d ' % val)
+                vals[(from_cell, to_cell)] = val
         return vals
 
     def init_players(self, option):

@@ -6,6 +6,7 @@ from pprint import pprint
 from Rules import board_value
 import random
 import time
+import operator
 
 class TestMorelli(unittest.TestCase):
 
@@ -138,21 +139,19 @@ class TestMorelliMoves(unittest.TestCase):
     def test_many_moves(self):
         moves_made = 0
 
-        aval_moves = self.game.board.avaiable_moves(self.game.board._players[0])
+        avaiable_moves_flat = self.game.board.avaiable_moves(self.game.board._players[0], flat=True)
+        aval_moves_flat_val = self.game.board.avaliable_moves_val(avaiable_moves_flat, self.game.board.current_player())
 
-        while len(aval_moves) > 0:
-            from_cell, to_cell_l = random.choice(list(aval_moves.items()))
-            to_cell = random.choice(to_cell_l)
+        while len(avaiable_moves_flat) > 0:
+            from_cell, to_cell = max(aval_moves_flat_val.items(), key=operator.itemgetter(1))[0]
             self.assertNotEqual(self.game.board.move(from_cell, to_cell), False, "Did not move on aval move")
 
             moves_made += 1
-            aval_moves = self.game.board.avaiable_moves(self.game.board._players[random.randint(0,1)])
-            print('before draw')
+            avaiable_moves_flat = self.game.board.avaiable_moves(self.game.board.current_player(), flat=True)
+            aval_moves_flat_val = self.game.board.avaliable_moves_val(avaiable_moves_flat, self.game.board.current_player())
             self.game.game_draw()
-            print('after draw')
-            time.sleep(0.1)
 
-        self.assertTrue(moves_made > 15, "Not enough moves made")
+        self.assertTrue(moves_made > 35, "Not enough moves made")
         print('Made %d moves' % (moves_made))
 
 if __name__ == '__main__':

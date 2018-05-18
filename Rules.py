@@ -28,11 +28,11 @@ class NoInWay(Rule):
         y_diff = to_cell.pos[1] - from_cell.pos[1]
 
         if(not to_cell.is_empty()):
-            print("Cell not Empty")
+            #print("Cell not Empty")
             return False
 
         if(x_diff  == 0 and y_diff == 0):
-            print("hmmm both x_diff and y_diff is 0")
+            #print("hmmm both x_diff and y_diff is 0")
             return True
         else:
             return self.line_move(from_cell, to_cell)
@@ -104,7 +104,7 @@ class ChangePiece(ModRule):
         return adjencts
 
     def orth_check(self, adj_cell, curr_player):
-        print(curr_player)
+        #print(curr_player)
 
         if(adj_cell.pos[0]+1 >= self.board.dim or adj_cell.pos[0]-1 < 0):
             return False
@@ -161,12 +161,12 @@ class PutKing(ModRule):
         if(c1.is_empty() or c2.is_empty() or c3.is_empty() or c4.is_empty()):
             return
 
-        print('Arent empty')
+        #print('Arent empty')
 
         if(c1.get_holding().owner == c2.get_holding().owner 
                 and c2.get_holding().owner == c3.get_holding().owner
                 and c3.get_holding().owner == c4.get_holding().owner):
-            print("We have frame AND KING")
+            #print("We have frame AND KING")
             self.board.put_king(curr_player)
 
 
@@ -180,8 +180,8 @@ class Winning(Rule):
         pass
 
 def board_value(board):
-    king_val = 50
-    piece_val = 10
+    king_val = 50.0
+    piece_val = 10.0
     order_val = 0.5
 
     vals = {}
@@ -191,9 +191,9 @@ def board_value(board):
         for cell in cellx:
             if(not cell.is_empty()):
                 if(cell.get_holding().type == 'king'):
-                    vals[cell.get_holding().owner] += king_val
+                    vals[cell.get_holding().owner.color] += king_val
                 elif(cell.get_holding().type == 'regular'):
-                    vals[cell.get_holding().owner] += piece_val/(order_val*(cell.order+1))
+                    vals[cell.get_holding().owner.color] += piece_val/(order_val*(cell.order+1))
                 else:
                     continue
 
