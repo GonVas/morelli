@@ -150,7 +150,7 @@ class TestMorelliMoves(unittest.TestCase):
             print('before draw')
             self.game.game_draw()
             print('after draw')
-            time.sleep(0.5)
+            time.sleep(0.1)
 
         self.assertTrue(moves_made > 15, "Not enough moves made")
         print('Made %d moves' % (moves_made))
