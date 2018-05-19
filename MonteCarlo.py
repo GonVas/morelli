@@ -22,7 +22,7 @@ class DecisionNode:
         return node_dad
 
 class MonteCarlo:
-    def __init__(self, board, player, max_time, ucb_C=1.4, max_moves=500):
+    def __init__(self, board, player, max_time, ucb_C=1.4, max_moves=50):
         # Takes an instance of a Board and optionally some keyword
         # arguments.  Initializes the list of game states and the
         # statistics tables.
@@ -33,7 +33,7 @@ class MonteCarlo:
         #self.other_player = other
         #self.players = [player, other
         self.calculation_time = datetime.timedelta(seconds=max_time)
-        self.states = [board]
+        self.states = []
         self.wins = {}
         self.plays = {}
 
@@ -46,6 +46,7 @@ class MonteCarlo:
         # current game state and return it.
         self.max_depth = 0
         state = self.states[-1]
+        player = state.current_player()
         legal = state.avaiable_moves(self.me_player, flat=True) #self.curr_player.aval_moves(self.board[:])
 
         # Bail out early if there is no real choice to be made.
@@ -122,55 +123,44 @@ class MonteCarlo:
 
     def run_simulation(self):
         # Plays out a "random" game from the current position,
-        # then updates the statistics tables with the result.
-
-        decision_tree = DecisionNode('root', 0, None)
-
-
-
-
-
+        # then updates the statistics tables with the result
 
         visited_states = set()
         states_copy = self.states[:]
-        board = states_copy[-1]
+        state = states_copy[-1]
         player = str(state.current_player())
 
         expand = True
         for t in range(1, self.max_moves + 1):
+            legal = state.avaiable_moves(state.current_player(), flat=True)
 
-            legal = state.avaiable_moves(self.me_player, flat=True)
+            #states_copy.append(state)
 
-            node = self.select_node(decision_tree)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+            play = choice(legal)
+            state = self.next_state(state, play)
             states_copy.append(state)
 
             # `player` here and below refers to the player
             # who moved into that particular state.
-            if expand and (player, id(state)) not in plays:
+            if expand and (player, id(state)) not in self.plays:
                 expand = False
-                plays[(player, id(state))] = 0
-                wins[(player, id(state))] = 0
+                self.plays[(player, id(state))] = 0
+                self.wins[(player, id(state))] = 0
+
+
+            '''
+            if expand and (player, id(state)) not in self.plays:
+                expand = False
+                self.plays[(player, id(state))] = 0
+                self.wins[(player, id(state))] = 0
                 if t > self.max_depth:
                     self.max_depth = t
+            '''
 
-            visited_states.add((player, state))
+            visited_states.add((str(player), id(state)))
 
-            player = state.current_player()
-            
+            player = str(state.current_player())
+
             winner = None
             for possible_state in states_copy:
                 temp = possible_state.check_winning()
@@ -179,13 +169,14 @@ class MonteCarlo:
 
             if winner:
                 break
+        ###############################################################
 
         for player, state in visited_states:
-            if (player, id(state)) not in plays:
+            if (player, state) not in self.plays:
                 continue
-            plays[(player, id(state))] += 1
+            self.plays[(player, state)] += 1
             if player == winner:
-                wins[(player, id(state))] += 1
+                self.wins[(player, state)] += 1
 
     @staticmethod
     def next_state(board, move):

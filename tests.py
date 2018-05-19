@@ -132,7 +132,7 @@ class TestMorelliCreation(unittest.TestCase):
             if(not cell.is_empty()):
                 self.assertNotEqual(cell.get_holding().color_str(), op_cell.get_holding().color_str(), "Opossing cell not oposite color." )
 
-'''
+
 class TestMorelliMoves(unittest.TestCase):
 
     def setUp(self):
@@ -182,14 +182,14 @@ class TestMorelliMoves(unittest.TestCase):
         time.sleep(2)
 
         self.assertTrue(self.game.board.get_center().get_holding().owner == self.game.board._players[1], 'Player black did not Win')
-'''
+"""
 
 class TestMorelliMonteCarlo(unittest.TestCase):
     def setUp(self):
         self.game = Morelli(dim=9, testing=True, gui=True)
 
     def test_
-
+"""
 
 if __name__ == '__main__':
     unittest.main()
