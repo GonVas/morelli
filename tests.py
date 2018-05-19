@@ -4,6 +4,7 @@ from copy import deepcopy
 from MonteCarlo import MonteCarlo
 from pprint import pprint
 from Rules import board_value
+from Cell import Piece
 import random
 import time
 import operator
@@ -134,9 +135,9 @@ class TestMorelliCreation(unittest.TestCase):
 class TestMorelliMoves(unittest.TestCase):
 
     def setUp(self):
-        self.game = Morelli(dim=11, testing=True, gui=True)
+        self.game = Morelli(dim=7, testing=True, gui=True)
 
-    def test_many_moves(self):
+    def make_moves(self):
         moves_made = 0
 
         avaiable_moves_flat = self.game.board.avaiable_moves(self.game.board._players[0], flat=True)
@@ -151,8 +152,36 @@ class TestMorelliMoves(unittest.TestCase):
             aval_moves_flat_val = self.game.board.avaliable_moves_val(avaiable_moves_flat, self.game.board.current_player())
             self.game.game_draw()
 
-        self.assertTrue(moves_made > 35, "Not enough moves made")
-        print('Made %d moves' % (moves_made))
+        return moves_made
+
+    def test_moves_winning(self):
+        #moves_made = self.make_moves()
+
+        #if(self.game.dim == 7):
+         #   self.assertTrue(moves_made > 8, "Not enough moves made")
+        #else:
+         #   self.assertTrue(moves_made > 35, "Not enough moves made")
+
+        #print('Made %d moves' % (moves_made))
+
+        piece1 = Piece(self.game.board._players[0])
+        piece2 = Piece(self.game.board._players[0])
+        piece3 = Piece(self.game.board._players[0])
+        piece4 = Piece(self.game.board._players[0])
+
+        self.game.board._cells[2][2].set_holding(piece1)
+        self.game.board._cells[2][-3].set_holding(piece2)
+        self.game.board._cells[-3][2].set_holding(piece3)
+        self.game.board._cells[-3][-3].set_holding(piece4)
+
+        self.game.board.move(self.game.board._cells[0][1], self.game.board._cells[2][3])
+
+        self.game.game_draw()
+
+        time.sleep(2)
+
+        self.assertTrue(self.game.board.get_center().get_holding().owner == self.game.board._players[1], 'Player black did not Win')
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -52,18 +52,18 @@ class MonteCarlo:
 
         # Pick the move with the highest percentage of wins.
         percent_wins, move = max(
-            (self.wins.get((player, S), 0) /
-             self.plays.get((player, S), 1),
+            (self.wins.get((player, id(S)), 0) /
+             self.plays.get((player, id(S)), 1),
              p)
             for p, S in moves_states
         )
 
         # Display the stats for each possible play.
         for x in sorted(
-            ((100 * self.wins.get((player, S), 0) /
-              self.plays.get((player, S), 1),
-              self.wins.get((player, S), 0),
-              self.plays.get((player, S), 0), p)
+            ((100 * self.wins.get((player, id(S)), 0) /
+              self.plays.get((player, id(S)), 1),
+              self.wins.get((player, id(S)), 0),
+              self.plays.get((player, id(S)), 0), p)
              for p, S in moves_states),
             reverse=True
         ):
@@ -72,7 +72,7 @@ class MonteCarlo:
         print("Maximum depth searched:", self.max_depth)
 
         return move
-        
+
     def run_simulation(self):
         # Plays out a "random" game from the current position,
         # then updates the statistics tables with the result.
@@ -81,40 +81,45 @@ class MonteCarlo:
         visited_states = set()
         states_copy = self.states[:]
         state = states_copy[-1]
-        player = state.current_player()
- 
+        player = str(state.current_player())
+
         expand = True
         for t in range(1, self.max_moves + 1):
             legal = state.avaiable_moves(self.me_player, flat=True)
 
             #moves_states = [(p, MonteCarlo.next_state(state, p)) for p in legal]
 
-            moves_states = []
+            moved_states = []
             for legal_play in legal:
-                moves_states.append( (legal_play, MonteCarlo.next_state(state, legal_play)))
+                moved_states.append( (legal_play, MonteCarlo.next_state(state, legal_play)))
 
+            have_all_plays = True
+            for moved_state in moved_states:
+                if ( (player, id(moved_state)) not in plays) or plays[(player, id(moved_state))] == 0:
+                    have_all_plays = False
 
-            if all(plays.get((player, S)) for p, S in moves_states):
-                # If we have stats on all of the legal moves here, use them.
-                log_total = log(
-                    sum(plays[(player, S)] for p, S in moves_states))
-                value, move, state = max(
-                    ((wins[(player, S)] / plays[(player, S)]) +
-                     self.ucb_C * sqrt(log_total / plays[(player, S)]), p, S)
-                    for p, S in moves_states
+            if(have_all_plays):
+                log_total = sum(
+                    plays[(player, id(S))] for p, S in moved_states)
+
+                v_m_s = max(
+                    ((wins[(player, id(S))] / plays[(player, id(S))] + 1) +
+                     self.ucb_C * sqrt(log_total / plays[(player, id(S))]), p, S)
+                    for p, S in moved_states
                 )
+                value, move, state = v_m_s
             else:
                 # Otherwise, just make an arbitrary decision.
-                move, state = choice(moves_states)
+                move, state = choice(moved_states)
 
             states_copy.append(state)
 
             # `player` here and below refers to the player
             # who moved into that particular state.
-            if expand and (player, state) not in plays:
+            if expand and (player, id(state)) not in plays:
                 expand = False
-                plays[(player, state)] = 0
-                wins[(player, state)] = 0
+                plays[(player, id(state))] = 0
+                wins[(player, id(state))] = 0
                 if t > self.max_depth:
                     self.max_depth = t
 
@@ -132,11 +137,11 @@ class MonteCarlo:
                 break
 
         for player, state in visited_states:
-            if (player, state) not in plays:
+            if (player, id(state)) not in plays:
                 continue
-            plays[(player, state)] += 1
+            plays[(player, id(state))] += 1
             if player == winner:
-                wins[(player, state)] += 1
+                wins[(player, id(state))] += 1
 
     @staticmethod
     def next_state(board, move):
@@ -147,3 +152,20 @@ class MonteCarlo:
         next_board = board.move(move[0], move[1], destructive=False ) 
   #      next_board.print()
         return next_board
+
+
+
+
+'''
+            if all(plays.get((player, S)) for p, S in moved_states):
+                # If we have stats on all of the legal moves here, use them.
+                log_total = log(
+                    sum(plays[(player, S)] for p, S in moved_states))
+
+
+                value, move, state = max(
+                    ((wins[(player, S)] / plays[(player, S)]) +
+                     self.ucb_C * sqrt(log_total / plays[(player, S)]), p, S)
+                    for p, S in moved_states
+                )
+'''

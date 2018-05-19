@@ -59,5 +59,5 @@ class AI(Player):
 
     def move(self, events, pygame, game):
         print('AI THINKING')
-        #self.monte.get_play()
+        self.monte.get_play()
 

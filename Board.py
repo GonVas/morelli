@@ -125,7 +125,7 @@ class Board:
     def mod_rules(self, from_cell, to_cell):
         for mod_rule in self.modifying_rules:
             mod_rule.do_rule(from_cell, to_cell)
-        #print("Done all mod rules")
+        print("Done all mod rules")
         return True
 
     def move(self, from_cell, where_cell, destructive=True):
@@ -321,6 +321,9 @@ class Board:
         for val in vec:
             vec_sum += val**p
         return (vec_sum**(1/p))
+
+    def __hash__(self):
+        return hash(repr(self))
 
     def max_order(self):
         return int(self.pnorm(self.center))
