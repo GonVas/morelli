@@ -5,6 +5,22 @@ from copy import deepcopy, copy
 
 import pprint
 
+class DecisionNode:
+
+    def __init__(self, node, depth, dad):
+        self.node = init_node
+        self.depth = depth
+        self.dad = dad
+        self.wins = 0
+        self.plays = 0
+        self.children = None
+
+    def get_root(self):
+        node_dad = self.dad
+        while(node_dad is not None):
+            node_dad = self.dad
+        return node_dad
+
 class MonteCarlo:
     def __init__(self, board, player, max_time, ucb_C=1.4, max_moves=500):
         # Takes an instance of a Board and optionally some keyword
@@ -73,44 +89,72 @@ class MonteCarlo:
 
         return move
 
+    def selection(self, decision_tree):
+
+
+        moved_states = []
+        for legal_play in state.avaiable_moves(self.me_player, flat=True):
+            moved_states.append( (legal_play, MonteCarlo.next_state(state, legal_play)))
+
+        decision_node.children
+
+
+        have_all_plays = True
+        for moved_state in moved_states:
+            if ( (player, id(moved_state)) not in plays) or plays[(player, id(moved_state))] == 0:
+                have_all_plays = False
+
+        if(have_all_plays):
+            log_total = sum(
+                plays[(player, id(S))] for p, S in moved_states)
+
+            v_m_s = max(
+                ((wins[(player, id(S))] / plays[(player, id(S))] + 1) +
+                 self.ucb_C * sqrt(log_total / plays[(player, id(S))]), p, S)
+                for p, S in moved_states
+            )
+            value, move, state = v_m_s
+        else:
+            # Otherwise, just make an arbitrary decision.
+            move, state = choice(moved_states)
+
+        return node
+
     def run_simulation(self):
         # Plays out a "random" game from the current position,
         # then updates the statistics tables with the result.
-        plays, wins = self.plays, self.wins
+
+        decision_tree = DecisionNode('root', 0, None)
+
+
+
+
+
 
         visited_states = set()
         states_copy = self.states[:]
-        state = states_copy[-1]
+        board = states_copy[-1]
         player = str(state.current_player())
 
         expand = True
         for t in range(1, self.max_moves + 1):
+
             legal = state.avaiable_moves(self.me_player, flat=True)
 
-            #moves_states = [(p, MonteCarlo.next_state(state, p)) for p in legal]
+            node = self.select_node(decision_tree)
 
-            moved_states = []
-            for legal_play in legal:
-                moved_states.append( (legal_play, MonteCarlo.next_state(state, legal_play)))
 
-            have_all_plays = True
-            for moved_state in moved_states:
-                if ( (player, id(moved_state)) not in plays) or plays[(player, id(moved_state))] == 0:
-                    have_all_plays = False
 
-            if(have_all_plays):
-                log_total = sum(
-                    plays[(player, id(S))] for p, S in moved_states)
 
-                v_m_s = max(
-                    ((wins[(player, id(S))] / plays[(player, id(S))] + 1) +
-                     self.ucb_C * sqrt(log_total / plays[(player, id(S))]), p, S)
-                    for p, S in moved_states
-                )
-                value, move, state = v_m_s
-            else:
-                # Otherwise, just make an arbitrary decision.
-                move, state = choice(moved_states)
+
+
+
+
+
+
+
+
+
 
             states_copy.append(state)
 
