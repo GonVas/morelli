@@ -4,6 +4,7 @@ from math import log, sqrt
 from copy import deepcopy, copy
 import time
 import pprint
+import operator
 
 class DecisionNode:
 
@@ -68,7 +69,7 @@ class MonteCarlo:
         # Causes the AI to calculate the best move from the
         # current game state and return it.
         self.max_depth = 0
-        state = deepcopy(self.states[-1])
+        state = self.states[-1]
         player = str(state.current_player())
         legal = state.avaiable_moves(state.current_player(), flat=True) #self.curr_player.aval_moves(self.board[:])
 
@@ -82,49 +83,32 @@ class MonteCarlo:
 
         games = 0
         begin = datetime.datetime.utcnow()
+
         while games < 3:
-            self.run_simulation()
+            moves_states = self.run_simulation(state)
             games += 1
             print('Ran a game simulation')
-
-        #moves_states = [(p, MonteCarlo.next_state(state, p).get_state()) for p in legal]
-
-        moves_states = []
-        copy_old_state = deepcopy(state)
-        for play in state.avaiable_moves(state.current_player(), flat=True):
-            state.move(play[0], play[1], destructive=True) 
-            #print('Moved (%d, %d) to (%d, %d) state : %s' % (play[0].pos[0], play[0].pos[1], play[1].pos[0], play[1].pos[1], state.get_state()  ))
-            moves_states.append( [play, state.get_state()])
-            state = deepcopy(copy_old_state)
 
 
         print(games, datetime.datetime.utcnow() - begin)
 
-        moves_states = self.clean_records(moves_states)
+ #       moves_states = self.clean_records(moves_states)
         
         record = [-1, None]
         for play, sta in moves_states:
             if((player, sta) in self.wins):
+                print('found Recors')
                 per_win = self.wins[(player, sta)]/self.plays[(player, sta)]
                 if(per_win > record[0]):
                     record = [per_win, play]
+            else:
+                print('No find')
 
-        if(record[0] == None):
+        if(record[1] == None):
             print('Not found in records')
             return legal[0]
 
-        # Display the stats for each possible play.
-      #  for x in sorted(
-       #     ((100 * self.wins.get((player, S), 0) /
-        #      self.plays.get((player, S), 1),
-         #     self.wins.get((player, S), 0),
-          #    self.plays.get((player, S), 0), p)
-           #  for p, S in moves_states),
-            #reverse=True
-        #):
-         #   print("{3}: {0:.2f}% ({1} / {2})".format(*x))
-
-        #print("Maximum depth searched:", self.max_depth)
+        print("Maximum depth searched:", self.max_depth)
 
         return record[1]
 
@@ -159,33 +143,41 @@ class MonteCarlo:
 
         return node
 
-    def run_simulation(self):
+    def run_simulation(self, state):
         visited_states = set()
         states_copy = [deepcopy(s) for s in self.states]
 
-        state = states_copy[-1]
+        state = deepcopy(state)
         player = str(state.current_player())
 
         expand = True
         first_time = True
+        moves_states = []
 
         for t in range(self.max_moves):
+
             legal = state.avaiable_moves(state.current_player(), flat = True)
 
-            #print('Length of legal %d' % (len(legal)))
-            
+
+            if(first_time):
+                for play in legal:
+                    cop_state = deepcopy(state)
+                    cop_state.move(play[0], play[1], destructive=True) 
+                    moves_states.append( [play, cop_state.get_state()])
+                    copy_old_state = deepcopy(state)
+
+
             winner = state.check_winning()
             if winner:
                 winner = str(winner)
                 print('Got a Winner: ' + winner)
                 break
 
-            play = choice(legal)
-            
-            #old_state = state.get_state()
-            #state = self.next_state(state, play)
-            #print('Is equal? ' + str(old_state==state.get_state()))
-            state.move(play[0], play[1], destructive=True) 
+
+            aval_moves_flat_val = state.avaliable_moves_val(state.avaiable_moves(state.current_player()), state.current_player())
+            from_cell, to_cell = max(aval_moves_flat_val.items(), key=operator.itemgetter(1))[0]
+               
+            state.move(from_cell, to_cell, destructive=True) 
 
             states_copy.append(state.get_state())
 
@@ -195,6 +187,7 @@ class MonteCarlo:
                 expand = False
                 self.plays[(player, state.get_state())] = 0
                 self.wins[(player, state.get_state())] = 0
+
 
             visited_states.add((player, state.get_state()))
 
@@ -208,6 +201,8 @@ class MonteCarlo:
                 self.wins[(player, state)] += 1
             elif winner == 'tie':
                 self.wins[(player, state)] -= 1
+
+        return moves_states
 
 
     @staticmethod
