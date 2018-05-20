@@ -2,7 +2,7 @@ import datetime
 from random import choice
 from math import log, sqrt
 from copy import deepcopy, copy
-
+import time
 import pprint
 
 class DecisionNode:
@@ -22,7 +22,7 @@ class DecisionNode:
         return node_dad
 
 class MonteCarlo:
-    def __init__(self, board, player, max_time, ucb_C=1.4, max_moves=50):
+    def __init__(self, board, player, max_time, ucb_C=1.4, max_moves=120):
         # Takes an instance of a Board and optionally some keyword
         # arguments.  Initializes the list of game states and the
         # statistics tables.
@@ -41,54 +41,92 @@ class MonteCarlo:
         # Takes a game state, and appends it to the history.
          self.states.append(state)
 
+    def clean_records(self, visited_states):
+
+        new_wins = {}
+        for key, item in self.wins.items():
+            new_key = (key[0], key[1][0:-1])
+            new_wins[new_key] = item
+        self.wins = new_wins
+
+        new_plays = {}
+        for key, item in self.plays.items():
+            new_key = (key[0], key[1][0:-1])
+            new_plays[new_key] = item
+        self.plays = new_plays
+
+        new_visited_states = []
+        for key, item in visited_states:
+            new_item = item[0:-1]
+            new_visited_states.append([key, new_item])
+        visited_states = new_visited_states
+
+        return new_visited_states
+
+
     def get_play(self):
         # Causes the AI to calculate the best move from the
         # current game state and return it.
         self.max_depth = 0
-        state = self.states[-1]
-        player = state.current_player()
-        legal = state.avaiable_moves(self.me_player, flat=True) #self.curr_player.aval_moves(self.board[:])
+        state = deepcopy(self.states[-1])
+        player = str(state.current_player())
+        legal = state.avaiable_moves(state.current_player(), flat=True) #self.curr_player.aval_moves(self.board[:])
 
         # Bail out early if there is no real choice to be made.
         if len(legal) == 0:
+            print('Legal is None')
             return
         if len(legal) == 1:
+            print('Legal is 1')
             return legal[0]
 
         games = 0
         begin = datetime.datetime.utcnow()
-        while datetime.datetime.utcnow() - begin < self.calculation_time:
+        while games < 3:
             self.run_simulation()
             games += 1
+            print('Ran a game simulation')
 
-        moves_states = [(p, MonteCarlo.next_state(state, p)) for p in legal]
+        #moves_states = [(p, MonteCarlo.next_state(state, p).get_state()) for p in legal]
 
-        # Display the number of calls of `run_simulation` and the
-        # time elapsed.
+        moves_states = []
+        copy_old_state = deepcopy(state)
+        for play in state.avaiable_moves(state.current_player(), flat=True):
+            state.move(play[0], play[1], destructive=True) 
+            #print('Moved (%d, %d) to (%d, %d) state : %s' % (play[0].pos[0], play[0].pos[1], play[1].pos[0], play[1].pos[1], state.get_state()  ))
+            moves_states.append( [play, state.get_state()])
+            state = deepcopy(copy_old_state)
+
+
         print(games, datetime.datetime.utcnow() - begin)
 
-        # Pick the move with the highest percentage of wins.
-        percent_wins, move = max(
-            (self.wins.get((player, id(S)), 0) /
-             self.plays.get((player, id(S)), 1),
-             p)
-            for p, S in moves_states
-        )
+        moves_states = self.clean_records(moves_states)
+        
+        record = [-1, None]
+        for play, sta in moves_states:
+            if((player, sta) in self.wins):
+                per_win = self.wins[(player, sta)]/self.plays[(player, sta)]
+                if(per_win > record[0]):
+                    record = [per_win, play]
+
+        if(record[0] == None):
+            print('Not found in records')
+            return legal[0]
 
         # Display the stats for each possible play.
-        for x in sorted(
-            ((100 * self.wins.get((player, id(S)), 0) /
-              self.plays.get((player, id(S)), 1),
-              self.wins.get((player, id(S)), 0),
-              self.plays.get((player, id(S)), 0), p)
-             for p, S in moves_states),
-            reverse=True
-        ):
-            print("{3}: {0:.2f}% ({1} / {2})".format(*x))
+      #  for x in sorted(
+       #     ((100 * self.wins.get((player, S), 0) /
+        #      self.plays.get((player, S), 1),
+         #     self.wins.get((player, S), 0),
+          #    self.plays.get((player, S), 0), p)
+           #  for p, S in moves_states),
+            #reverse=True
+        #):
+         #   print("{3}: {0:.2f}% ({1} / {2})".format(*x))
 
-        print("Maximum depth searched:", self.max_depth)
+        #print("Maximum depth searched:", self.max_depth)
 
-        return move
+        return record[1]
 
     def selection(self, decision_tree):
 
@@ -122,54 +160,45 @@ class MonteCarlo:
         return node
 
     def run_simulation(self):
-        # Plays out a "random" game from the current position,
-        # then updates the statistics tables with the result
-
         visited_states = set()
-        states_copy = self.states[:]
+        states_copy = [deepcopy(s) for s in self.states]
+
         state = states_copy[-1]
         player = str(state.current_player())
 
         expand = True
-        for t in range(1, self.max_moves + 1):
-            legal = state.avaiable_moves(state.current_player(), flat=True)
+        first_time = True
 
-            #states_copy.append(state)
+        for t in range(self.max_moves):
+            legal = state.avaiable_moves(state.current_player(), flat = True)
+
+            #print('Length of legal %d' % (len(legal)))
+            
+            winner = state.check_winning()
+            if winner:
+                winner = str(winner)
+                print('Got a Winner: ' + winner)
+                break
 
             play = choice(legal)
-            state = self.next_state(state, play)
-            states_copy.append(state)
+            
+            #old_state = state.get_state()
+            #state = self.next_state(state, play)
+            #print('Is equal? ' + str(old_state==state.get_state()))
+            state.move(play[0], play[1], destructive=True) 
+
+            states_copy.append(state.get_state())
 
             # `player` here and below refers to the player
             # who moved into that particular state.
-            if expand and (player, id(state)) not in self.plays:
+            if expand and (player, state.get_state()) not in self.plays:
                 expand = False
-                self.plays[(player, id(state))] = 0
-                self.wins[(player, id(state))] = 0
+                self.plays[(player, state.get_state())] = 0
+                self.wins[(player, state.get_state())] = 0
 
-
-            '''
-            if expand and (player, id(state)) not in self.plays:
-                expand = False
-                self.plays[(player, id(state))] = 0
-                self.wins[(player, id(state))] = 0
-                if t > self.max_depth:
-                    self.max_depth = t
-            '''
-
-            visited_states.add((str(player), id(state)))
+            visited_states.add((player, state.get_state()))
 
             player = str(state.current_player())
-
-            winner = None
-            for possible_state in states_copy:
-                temp = possible_state.check_winning()
-                if( temp != None):
-                    winner = temp
-
-            if winner:
-                break
-        ###############################################################
 
         for player, state in visited_states:
             if (player, state) not in self.plays:
@@ -177,15 +206,13 @@ class MonteCarlo:
             self.plays[(player, state)] += 1
             if player == winner:
                 self.wins[(player, state)] += 1
+            elif winner == 'tie':
+                self.wins[(player, state)] -= 1
+
 
     @staticmethod
     def next_state(board, move):
-  #      print("before board: BBBBBBBBB\n")
-  #      board.print()
-  #      print("BEFOR BOARD PRINTED\n")
-
         next_board = board.move(move[0], move[1], destructive=False ) 
-  #      next_board.print()
         return next_board
 
 
@@ -204,3 +231,35 @@ class MonteCarlo:
                     for p, S in moved_states
                 )
 '''
+
+
+
+"""
+    def run_simulation(self):
+            legal = self.board.legal_plays(states_copy)
+
+            play = choice(legal)
+            state = self.board.next_state(state, play)
+            states_copy.append(state)
+
+            # `player` here and below refers to the player
+            # who moved into that particular state.
+            if expand and (player, state) not in self.plays:
+                expand = False
+                self.plays[(player, state)] = 0
+                self.wins[(player, state)] = 0
+
+            visited_states.add((player, state))
+
+            player = self.board.current_player(state)
+            winner = self.board.winner(states_copy)
+            if winner:
+                break
+
+            for player, state in visited_states:
+                if (player, state) not in self.plays:
+                    continue
+                self.plays[(player, state)] += 1
+                if player == winner:
+                    self.wins[(player, state)] += 1
+"""

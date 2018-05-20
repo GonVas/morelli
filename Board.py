@@ -125,7 +125,7 @@ class Board:
     def mod_rules(self, from_cell, to_cell):
         for mod_rule in self.modifying_rules:
             mod_rule.do_rule(from_cell, to_cell)
-        print("Done all mod rules")
+        #print("Done all mod rules")
         return True
 
     def move(self, from_cell, where_cell, destructive=True):
@@ -212,7 +212,7 @@ class Board:
         self._cells[self.center[0]][self.center[0]].set_holding(King(player))
 
     def check_winning(self):
-        if(len(self.avaiable_moves(self._players[0])) == 0 or len(self.avaiable_moves(self._players[0])) == 0):
+        if(len(self.avaiable_moves(self._players[0])) == 0 or len(self.avaiable_moves(self._players[1])) == 0):
             if(self.get_center().is_empty()):
                 return "tie"
             return self.get_center().get_holding().owner
@@ -225,7 +225,10 @@ class Board:
         self.winner_rules = [Rules.Winning(self)]
 
     def valid_move(self, from_cell, to_cell):
-        return self.check_rules(from_cell, to_cell)
+        if(to_cell.is_empty() and from_cell.pos != to_cell.pos and from_cell.order < to_cell.order):
+            return self.check_rules(from_cell, to_cell)
+        else:
+            return False
 
     def avaliable_moves_val(self, aval_moves, player):
         vals = {}
@@ -265,6 +268,51 @@ class Board:
     def change_player(self):
         self.curr_player = (self.curr_player + 1) % 2
 
+    def get_state(self):
+        state = ''
+        for cell_line in self._cells:
+            for cell in cell_line:
+                holding = cell.get_holding()
+                if(holding == 'empty'):
+                    state += 'e'
+                elif(holding.owner == self._players[0]):
+                    if(holding.type == 'regular'):
+                        state += 'w'
+                    else:
+                        state += 'k'
+                elif(holding.owner == self._players[1]):
+                    if(holding.type == 'regular'):
+                        state += 'b'
+                    else:
+                        state += 'o'
+        if(self.current_player() == self._players[0]):
+            state += '0'
+        else:
+            state += '1'
+        return state
+
+    def set_state(self, state):
+        for cell_line in range(len(self._cells)):
+            for cell in range(len(self._cells)):
+                hold = state[cell_line+(cell*len(self._cells))]
+                if(hold == 'e'):
+                    self._cells[cell][cell_line].set_empty()
+                elif(hold == 'w'):
+                    self._cells[cell][cell_line].set_holding(Piece(self._players[0]))
+                elif(hold == 'b'):
+                    self._cells[cell][cell_line].set_holding(Piece(self._players[1]))
+                elif(hold == 'k'):
+                    self._cells[cell][cell_line].set_holding(King(self._players[0]))
+                elif(hold == 'o'):
+                    self._cells[cell][cell_line].set_holding(King(self._players[1]))
+        
+        pl = state[-1]
+        if(pl == '0'):
+            self.curr_player = 0
+        else:
+            self.curr_player = 1
+
+
     def get_player_cells(self, player):
         res = []
 
@@ -294,7 +342,7 @@ class Board:
             flat_list = []
             for from_cell, to_cells in aval_moves.items():
                 for to_cell in to_cells:
-                    flat_list.append([from_cell, to_cell])
+                        flat_list.append([from_cell, to_cell])
             return flat_list
 
     def print(self):

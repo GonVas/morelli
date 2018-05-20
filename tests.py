@@ -178,8 +178,13 @@ class TestMorelliMoves(unittest.TestCase):
         self.game.board.move(self.game.board._cells[0][1], self.game.board._cells[2][3])
 
         self.game.game_draw()
-
+        #st = self.game.board.get_state()
+        #print(st)
         time.sleep(2)
+
+        #self.game.board.set_state(st)
+        #self.game.game_draw()
+        #time.sleep(2)
 
         self.assertTrue(self.game.board.get_center().get_holding().owner == self.game.board._players[1], 'Player black did not Win')
 """
