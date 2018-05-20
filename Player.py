@@ -59,5 +59,8 @@ class AI(Player):
 
     def move(self, events, pygame, game):
         print('AI THINKING')
-        self.monte.update(game.board)
-        self.monte.get_play()
+        #self.monte.update(deepcopy(game.board))
+        #play = self.monte.get_play()
+        play = MonteCarlo.best_move(game.board)
+        game.board.move(play[0], play[1], destructive=True)
+

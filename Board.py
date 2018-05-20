@@ -144,10 +144,6 @@ class Board:
                 return self.mod_rules(from_cell, where_cell)
             else:
                 new_cells = deepcopy(self)
-                #new_from_cell, new_to_cell = deepcopy(from_cell), deepcopy(where_cell)
-                #new_cells._cells[where_cell.pos[0]][where_cell.pos[1]].set_holding(from_cell.get_holding())
-                #new_cells._cells[from_cell.pos[0]][from_cell.pos[1]].set_holding('empty')
-                #new_cells.mod_rules(new_from_cell, new_to_cell)
                 new_cells.move(new_cells._cells[where_cell.pos[0]][where_cell.pos[1]], new_cells._cells[from_cell.pos[0]][from_cell.pos[1]])
                 return new_cells 
 
@@ -225,7 +221,7 @@ class Board:
         self.winner_rules = [Rules.Winning(self)]
 
     def valid_move(self, from_cell, to_cell):
-        if(to_cell.is_empty() and from_cell.pos != to_cell.pos and from_cell.order < to_cell.order):
+        if(to_cell.is_empty() and from_cell.pos != to_cell.pos):
             return self.check_rules(from_cell, to_cell)
         else:
             return False
@@ -266,6 +262,7 @@ class Board:
         return self._players[(self.curr_player + 1) % 2]
 
     def change_player(self):
+        print('Changed player')
         self.curr_player = (self.curr_player + 1) % 2
 
     def get_state(self):

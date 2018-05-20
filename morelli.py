@@ -7,6 +7,7 @@ import threading
 import random
 from Board import Board
 from copy import deepcopy, copy
+import sys
 
 from Cell import Cell, Piece, King, PieceGhost
 
@@ -106,6 +107,7 @@ class Morelli:
                 quit()
 
         self.board.current_player().move(events, pygame, self)
+        #self.board.change_player()
 
         pygame.display.update()
 
@@ -118,9 +120,9 @@ class Morelli:
 
             frames_passed = self.clock.tick(16.6597)
             time_passed = 1/frames_passed
-            self.curr_turn_time += time_passed
+            #self.curr_turn_time += time_passed
 
-            self.turn = (self.curr_turn_time%(self.turn_time*2  )) // (self.turn_time//2)%2
+            #self.turn = (self.curr_turn_time%(self.turn_time*2  )) // (self.turn_time//2)%2
             #curr_player = self.board.get_player(round(self.turn))
 
             winner = self.board.check_winning()
@@ -137,4 +139,4 @@ class Morelli:
 
 
 if __name__ == "__main__":
-    game = Morelli(turn_time=9)
+    game = Morelli(dim=int(sys.argv[1]), turn_time=10)

@@ -23,7 +23,7 @@ class DecisionNode:
         return node_dad
 
 class MonteCarlo:
-    def __init__(self, board, player, max_time, ucb_C=1.4, max_moves=120):
+    def __init__(self, board, player, max_time=5, ucb_C=1.4, max_moves=120):
         # Takes an instance of a Board and optionally some keyword
         # arguments.  Initializes the list of game states and the
         # statistics tables.
@@ -64,6 +64,11 @@ class MonteCarlo:
 
         return new_visited_states
 
+    @staticmethod
+    def best_move( state):
+        aval_moves_flat_val = state.avaliable_moves_val(state.avaiable_moves(state.current_player()), state.current_player())
+        from_cell, to_cell = max(aval_moves_flat_val.items(), key=operator.itemgetter(1))[0]
+        return [from_cell, to_cell]
 
     def get_play(self):
         # Causes the AI to calculate the best move from the
@@ -84,7 +89,7 @@ class MonteCarlo:
         games = 0
         begin = datetime.datetime.utcnow()
 
-        while games < 3:
+        while datetime.datetime.utcnow() - begin < datetime.timedelta(seconds=2):
             moves_states = self.run_simulation(state)
             games += 1
             print('Ran a game simulation')
@@ -106,7 +111,7 @@ class MonteCarlo:
 
         if(record[1] == None):
             print('Not found in records')
-            return legal[0]
+            return MonteCarlo.best_move(state)
 
         print("Maximum depth searched:", self.max_depth)
 
